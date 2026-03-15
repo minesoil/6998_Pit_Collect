@@ -67,6 +67,20 @@
             font-size: 1.4rem; 
             text-transform: uppercase; 
         }
+        
+        /* HEADER EXTRAS (Clock & Fullscreen) */
+        .clock-display {
+            position: absolute; top: 6px; left: 12px; font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 1px; font-weight: 300;
+        }
+        .fs-btn {
+            position: absolute; top: 22px; left: 12px;
+            font-size: 0.7rem; color: var(--accent); border: 1px solid var(--accent);
+            padding: 4px 8px; border-radius: 8px; font-weight: 600; cursor: pointer;
+            background: transparent; transition: all 0.2s ease; text-transform: uppercase;
+        }
+        .fs-btn:hover { background: var(--accent); color: var(--bg-deep); }
+        .fs-btn:active { transform: scale(0.95); }
+
         /* Robot Counter Badge */
         .counter-badge {
             position: absolute; top: 20px; right: 20px;
@@ -221,6 +235,8 @@
 <body>
 
 <header>
+    <div class="clock-display" id="liveClock">--:--:--</div>
+    <button type="button" class="fs-btn" onclick="toggleFullScreen()">⛶ Fullscreen</button>
     <h1> Unipards 2026 Pit Collect</h1>
     <div class="counter-badge" id="robotCounter">  [ROBOTS: 0]</div>
 </header>
@@ -234,8 +250,15 @@
             
             <div class="card">
                 <label>Scouter Name (你的名字)</label>
-                <input type="text" id="scouterName" placeholder="First & Last Name">
-                <div class="error-msg" id="err-name">Invalid Name</div>
+                <select id="scouterName">
+                    <option value="" disabled selected>Select Scouters (選擇姓名)...</option>
+                    <option value="黄浩倫 and 李苡安">黄浩倫 and 李苡安</option>
+                    <option value="戴均翰 and Orson">戴均翰 and Orson</option>
+                    <option value="黃柏嘉 and Daniel">黃柏嘉 and Daniel</option>
+                    <option value="郭耘睿 and Justin">郭耘睿 and Justin</option>
+                    <option value="裴敬庭 and 李承峰">裴敬庭 and 李承峰</option>
+                </select>
+                <div class="error-msg" id="err-name">Please select a name</div>
                 <div class="profanity-alert" id="profanity-name">Please remove inappropriate language.</div>
             </div>
 
@@ -703,6 +726,25 @@
     /* =========================================
        UI LOGIC HANDLERS
        ========================================= */
+
+    // Clock Logic
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('liveClock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }, 1000);
+
+    // Fullscreen Logic
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
     
     // Handles conditional inputs (e.g., checking "Other" reveals a text box)
     function setupOtherToggle(triggerId, boxId) {
@@ -796,18 +838,16 @@
             const name = document.getElementById('scouterName').value.trim();
             const team = document.getElementById('teamNum').value.trim();
             
-            // Profanity Check
-            if(containsProfanity(name)) {
-                document.getElementById('profanity-name').style.display = 'block';
+            // Name Selection Check
+            if (name === "") {
+                document.getElementById('err-name').style.display = 'block';
                 document.getElementById('scouterName').classList.add('violation');
                 isValid = false;
             } else {
-                document.getElementById('profanity-name').style.display = 'none';
+                document.getElementById('err-name').style.display = 'none';
                 document.getElementById('scouterName').classList.remove('violation');
+                document.getElementById('profanity-name').style.display = 'none'; // Kept for compatibility
             }
-            
-            // Basic Rules
-            if (name.length < 2) isValid = false;
             
             // Team must be in the list? (Optional logic, currently warns but blocks if invalid)
             if (!TEAM_LIST[team]) {
