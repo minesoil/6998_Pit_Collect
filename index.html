@@ -179,6 +179,7 @@
             border: 2px solid var(--accent);
             overflow: hidden;
             margin-bottom: 15px;
+            touch-action: none; /* FIX: Prevents page scroll when drawing on mobile */
         }
         #fieldCanvas {
             position: absolute;
@@ -192,6 +193,7 @@
             background-image: url('field_2026.png'); 
             background-size: cover;
             background-position: center;
+            touch-action: none; /* FIX: Prevents page scroll when drawing on mobile */
         }
         .drawing-controls { display: flex; gap: 10px; margin-bottom: 10px; }
 
@@ -260,9 +262,15 @@
                 
                 <br><br>
                 <label>Robot Weight (機器人重量)</label>
-                <span class="sub-label">In Pounds (lbs)</span>
-                <input type="number" id="weight" placeholder="125">
-                <div class="error-msg" id="err-weight">Max Weight is 135 lbs</div>
+                <span class="sub-label">Select lbs or kg</span>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="weight" placeholder="125" style="flex: 1;">
+                    <select id="weightUnit" style="width: 80px;" onchange="updateNavButtons()">
+                        <option value="lbs">lbs</option>
+                        <option value="kg">kg</option>
+                    </select>
+                </div>
+                <div class="error-msg" id="err-weight">Max Weight is 135 lbs (61.2 kg)</div>
                 
                 <br><br>
                 <label>Max Fuel Capacity (最高容量)</label>
@@ -276,12 +284,16 @@
                 <label>Intake Mechanism (Intake)</label>
                 <div class="grid-select">
                     <label class="toggle-btn">
-                        <input type="checkbox" name="intake" value="Roller">
-                        Roller
+                        <input type="checkbox" name="intake" value="OverBumper">
+                        Over Bumper (跨越保險桿)
                     </label>
                     <label class="toggle-btn">
-                        <input type="checkbox" name="intake" value="Pneumatic">
-                        Pneumatic
+                        <input type="checkbox" name="intake" value="UnderBumper">
+                        Under Bumper (穿過保險桿)
+                    </label>
+                    <label class="toggle-btn">
+                        <input type="checkbox" name="intake" value="Roller">
+                        Roller (滾輪)
                     </label>
                     <label class="toggle-btn">
                         <input type="checkbox" name="intake" id="intakeOtherTrigger">
@@ -339,6 +351,10 @@
                 <label>Shooting Capabilities (射球能力)</label>
                 <div class="grid-select">
                     <label class="toggle-btn">
+                        <input type="checkbox" name="shoot" value="Stationary">
+                        定點射擊<br><span style="font-size:0.7em">(Stationary)</span>
+                    </label>
+                    <label class="toggle-btn">
                         <input type="checkbox" name="shoot" value="MoveShoot">
                         邊走邊射<br><span style="font-size:0.7em">(Move & Shoot)</span>
                     </label>
@@ -346,20 +362,36 @@
                         <input type="checkbox" name="shoot" value="IntakeShoot">
                         邊吸邊射<br><span style="font-size:0.7em">(Intake & Shoot)</span>
                     </label>
+                    <label class="toggle-btn">
+                        <input type="checkbox" name="shoot" value="Pass">
+                        傳球<br><span style="font-size:0.7em">(Passing)</span>
+                    </label>
                 </div>
             </div>
 
             <div class="card">
-                <label>Turret Features (砲台)</label>
-                <div class="grid-select">
-                    <label class="toggle-btn">
-                        <input type="checkbox" name="turret" value="Yaw">
-                        Yaw (Horizontal)
-                    </label>
-                    <label class="toggle-btn">
-                        <input type="checkbox" name="turret" value="Pitch">
-                        Pitch (Vertical)
-                    </label>
+                <label>Turrets (砲台)</label>
+                <span class="sub-label">Turret Count (砲台數量)</span>
+                <input type="number" id="turretCount" placeholder="e.g. 1" min="0">
+
+                <div style="margin-top: 15px;">
+                    <span class="sub-label">Turret Features & Freedom (自由度)</span>
+                    <div class="grid-select">
+                        <label class="toggle-btn">
+                            <input type="checkbox" name="turret" value="Yaw" id="yawTrigger">
+                            Yaw (Horizontal)
+                        </label>
+                        <label class="toggle-btn">
+                            <input type="checkbox" name="turret" value="Pitch" id="pitchTrigger">
+                            Pitch (Vertical)
+                        </label>
+                    </div>
+                    <div class="conditional-input" id="yawFreedomBox">
+                        <input type="text" id="yawFreedomVal" placeholder="Yaw Freedom (e.g., 180°, 360°)...">
+                    </div>
+                    <div class="conditional-input" id="pitchFreedomBox">
+                        <input type="text" id="pitchFreedomVal" placeholder="Pitch Freedom (e.g., 45°, 90°)...">
+                    </div>
                 </div>
             </div>
         </div>
@@ -690,6 +722,8 @@
     setupOtherToggle('intakeOtherTrigger', 'intakeOtherBox');
     setupOtherToggle('visOtherTrigger', 'visOtherBox');
     setupOtherToggle('visSoftOtherTrigger', 'visSoftOtherBox');
+    setupOtherToggle('yawTrigger', 'yawFreedomBox');
+    setupOtherToggle('pitchTrigger', 'pitchFreedomBox');
 
     // Logic for exclusive checkboxes (acting like radio buttons but styled as boxes)
     document.querySelectorAll('.exclusive-check').forEach(box => {
@@ -728,7 +762,7 @@
     });
 
     // Real-time Validation Listeners
-    const inputsToMonitor = ['scouterName', 'notes', 'weight', 'capacity', 'preload', 'autoTotal', 'climbTime', 'intakeOtherVal', 'visOtherVal', 'visSoftOtherVal'];
+    const inputsToMonitor = ['scouterName', 'notes', 'weight', 'capacity', 'preload', 'autoTotal', 'climbTime', 'intakeOtherVal', 'visOtherVal', 'visSoftOtherVal', 'turretCount', 'yawFreedomVal', 'pitchFreedomVal'];
     inputsToMonitor.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.addEventListener('input', updateNavButtons);
@@ -786,11 +820,17 @@
         // --- PAGE 1: SPECS & SYSTEMS ---
         else if (currentPage === 1) {
             const weightVal = document.getElementById('weight').value;
+            const unit = document.getElementById('weightUnit').value;
             const capVal = document.getElementById('capacity').value;
             const weight = parseFloat(weightVal);
             
+            let weightLbs = weight;
+            if (unit === 'kg') {
+                weightLbs = weight * 2.20462;
+            }
+            
             if (weightVal === '' || capVal === '') { isValid = false; }
-            else if (weight > 135) {
+            else if (weightLbs > 135) {
                 document.getElementById('err-weight').style.display = 'block';
                 document.getElementById('weight').classList.add('violation');
                 isValid = false;
@@ -911,18 +951,33 @@
         const teamNum = document.getElementById('teamNum').value;
         const teamName = TEAM_LIST[teamNum] || "Unknown Team";
         
+        // Handle Weight Conversion for backend
+        const weightVal = parseFloat(document.getElementById('weight').value);
+        const unit = document.getElementById('weightUnit').value;
+        const finalWeightLbs = unit === 'kg' ? (weightVal * 2.20462).toFixed(1) : weightVal;
+
+        // Custom Turret Data String (Preserves Backend TSV Length)
+        const tCount = document.getElementById('turretCount').value || "0";
+        let turVals = `Count: ${tCount}`;
+        if(document.getElementById('yawTrigger').checked) {
+            turVals += ` | Yaw: ${document.getElementById('yawFreedomVal').value || 'Yes'}`;
+        }
+        if(document.getElementById('pitchTrigger').checked) {
+            turVals += ` | Pitch: ${document.getElementById('pitchFreedomVal').value || 'Yes'}`;
+        }
+
         // 1. Collect Data Object
         const data = {
             t: parseInt(teamNum),
             sc: document.getElementById('scouterName').value.replace(/\t/g, ' ').replace(/\n/g, ' '),
             dt: document.getElementById('chassis').value,
-            wt: document.getElementById('weight').value,
+            wt: finalWeightLbs,
             mx: document.getElementById('capacity').value,
             in: getMultiValues('intake', 'intakeOtherVal'),
             visH: getMultiValues('visionHard', 'visOtherVal'),
             visS: getMultiValues('visionSoft', 'visSoftOtherVal'),
             sht: getMultiValues('shoot'),
-            tur: getMultiValues('turret'),
+            tur: turVals,
             stL: getMultiValues('startPos'),
             pre: document.getElementById('preload').value,
             auInt: getMultiValues('autoIntakePos') || 'None', 
@@ -1270,6 +1325,8 @@
             document.getElementById('intakeOtherBox').style.display = 'none';
             document.getElementById('visOtherBox').style.display = 'none';
             document.getElementById('visSoftOtherBox').style.display = 'none';
+            document.getElementById('yawFreedomBox').style.display = 'none';
+            document.getElementById('pitchFreedomBox').style.display = 'none';
             // Removed terrain card hiding logic
             
             // Reset Displays
