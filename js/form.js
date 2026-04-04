@@ -24,6 +24,28 @@ function toggleFullScreen() {
         document.exitFullscreen?.();
     }
 }
+function toggleDegreeOptions() {
+    const yes = document.getElementById('canDegYes').checked;
+    const box = document.getElementById('degreeOptionsBox');
+    box.style.display = yes ? 'block' : 'none';
+    if (!yes) {
+        // Clear selections when hidden
+        document.querySelectorAll('input[name="turretAxis"]').forEach(cb => cb.checked = false);
+        document.getElementById('yawFreedomBox').style.display   = 'none';
+        document.getElementById('pitchFreedomBox').style.display = 'none';
+        document.getElementById('yawFreedomVal').value  = '';
+        document.getElementById('pitchFreedomVal').value = '';
+    }
+}
+
+function toggleAxisInput(axis) {
+    const boxId = axis === 'yaw' ? 'yawFreedomBox' : 'pitchFreedomBox';
+    const cbId  = axis === 'yaw' ? 'yawTrigger'    : 'pitchTrigger';
+    const box   = document.getElementById(boxId);
+    box.style.display = document.getElementById(cbId).checked ? 'block' : 'none';
+    if (!document.getElementById(cbId).checked)
+        document.getElementById(axis + 'FreedomVal').value = '';
+}
 
 // ── "Other" Conditional Inputs ─────────────────────────────────────────────
 function setupOtherToggle(triggerId, boxId) {
@@ -42,8 +64,6 @@ function setupOtherToggle(triggerId, boxId) {
 setupOtherToggle('intakeOtherTrigger', 'intakeOtherBox');
 setupOtherToggle('visOtherTrigger',    'visOtherBox');
 setupOtherToggle('visSoftOtherTrigger','visSoftOtherBox');
-setupOtherToggle('yawTrigger',         'yawFreedomBox');
-setupOtherToggle('pitchTrigger',       'pitchFreedomBox');
 
 // ── Event Autocomplete ─────────────────────────────────────────────────────
 const eventSearchInput = document.getElementById('eventSearch');
