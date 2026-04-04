@@ -363,9 +363,11 @@ document.body.style.paddingBottom = "100px";
 
 document.getElementById("teamNum").dispatchEvent(new Event("input"));
 updateNavButtons();
-window.scrollTo(0, 0);
 }
 
+window.scrollTo(0, 0);
+
 // ── Init ───────────────────────────────────────────────────────────────────
-document.getElementById("backBtn").style.visibility = "hidden";
+document.getElementById('backBtn').style.visibility = 'hidden';
 updateNavButtons();
+
