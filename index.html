@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -713,61 +714,108 @@
 
 <script>
     /* =========================================
+       TBA API INTEGRATION (LIVE DATA)
+       ========================================= */
+    const TBA_API_KEY = "86liJtIJ8jdGYlNIhrV8fAI1QjA3xY5fCy4friXBmvCdJLFy9vvZiHBnZaf0Op7v";
+    const EVENT_KEY = "2026cmp"; // 2026 FIRST Championship
+    
+    // Will be populated dynamically
+    let TEAM_LIST = {};
+
+    async function initTBA() {
+        const disp = document.getElementById('teamNameDisplay');
+        const cachedTeams = localStorage.getItem('TBA_TEAM_LIST_2026CMP');
+        
+        // Attempt to load from offline cache first to ensure app remains fast
+        if (cachedTeams) {
+            try {
+                TEAM_LIST = JSON.parse(cachedTeams);
+            } catch(e) {
+                TEAM_LIST = {};
+            }
+        }
+        
+        if (Object.keys(TEAM_LIST).length === 0) {
+            disp.textContent = "Fetching TBA Teams...";
+            disp.style.color = "var(--accent)";
+        }
+        
+        try {
+            let allTeams = [];
+            
+            // 1. Fetch main event teams
+            const response = await fetch(`https://www.thebluealliance.com/api/v3/event/${EVENT_KEY}/teams/simple`, {
+                headers: { 'X-TBA-Auth-Key': TBA_API_KEY }
+            });
+            
+            if (response.ok) {
+                const teams = await response.json();
+                
+                // 2. If main event has no teams listed directly, fetch its divisions
+                if (teams.length === 0) {
+                    const eventRes = await fetch(`https://www.thebluealliance.com/api/v3/event/${EVENT_KEY}`, {
+                        headers: { 'X-TBA-Auth-Key': TBA_API_KEY }
+                    });
+                    if (eventRes.ok) {
+                        const eventData = await eventRes.json();
+                        if (eventData.division_keys && eventData.division_keys.length > 0) {
+                            // Fetch all divisions in parallel
+                            const divPromises = eventData.division_keys.map(divKey => 
+                                fetch(`https://www.thebluealliance.com/api/v3/event/${divKey}/teams/simple`, {
+                                    headers: { 'X-TBA-Auth-Key': TBA_API_KEY }
+                                }).then(res => res.ok ? res.json() : [])
+                            );
+                            
+                            const divisionsData = await Promise.all(divPromises);
+                            divisionsData.forEach(divTeams => {
+                                allTeams = allTeams.concat(divTeams);
+                            });
+                        }
+                    }
+                } else {
+                    allTeams = teams;
+                }
+            }
+            
+            if (allTeams.length > 0) {
+                // Re-build TEAM_LIST
+                TEAM_LIST = {};
+                allTeams.forEach(t => {
+                    TEAM_LIST[t.team_number] = t.nickname;
+                });
+                
+                // Save to local cache for offline use in arena
+                localStorage.setItem('TBA_TEAM_LIST_2026CMP', JSON.stringify(TEAM_LIST));
+                
+                // Reset display if it hasn't been typed in yet
+                const currentTeamInput = document.getElementById('teamNum').value;
+                if (!currentTeamInput) {
+                    disp.textContent = "Waiting for input...";
+                    disp.style.color = "var(--accent)";
+                    disp.style.background = "rgba(255,255,255,0.05)";
+                } else {
+                    // Trigger input event to re-validate typed team
+                    document.getElementById('teamNum').dispatchEvent(new Event('input'));
+                }
+            }
+        } catch (error) {
+            console.warn("TBA Fetch failed, using cache or offline mode:", error);
+            if (Object.keys(TEAM_LIST).length === 0) {
+                const currentTeamInput = document.getElementById('teamNum').value;
+                if (!currentTeamInput) {
+                    disp.textContent = "Offline. Enter any team.";
+                    disp.style.color = "var(--text-secondary)";
+                }
+            }
+        }
+    }
+
+    // Initialize TBA on App Load
+    initTBA();
+
+    /* =========================================
        CONFIGURATION & DATA
        ========================================= */
-    const TEAM_LIST = {
-        364: "Team Fusion",
-        456: "Siege Robotics",
-        538: "Renaissance Robotics",
-        590: "Chahta Warriors",
-        1421: "Team CHAOS",
-        1912: "Team Combustion",
-        1927: "Tempest",
-        2183: "TigerBots",
-        2221: "FHS Robodawgs",
-        2556: "RadioActive Roaches",
-        2992: "The S.S. Prometheus",
-        3039: "Wildcat Robotics",
-        3606: "BearMetal",
-        3616: "Team Phenomena",
-        3753: "BulahBots!",
-        4087: "Voodoo Voltage",
-        4107: "Team Storm",
-        4336: "Ramageddon Robotics",
-        4400: "Cerbotics - Peñoles",
-        5045: "SpartaBot",
-        5863: "Hypercubed",
-        5971: "Raider Robotics Team",
-        6184: "C4 (Capital City Chaotic Coders)",
-        6706: "Golem",
-        6998: "Unipards",
-        7094: "Alpha Omega",
-        7474: "JXN UNITED",
-        8044: "Denham Venom",
-        8624: "Sasquatch Robotics",
-        8808: "SWLA Tech Pirates",
-        9153: "Bearcat Robotics",
-        9309: "Metal Mages",
-        9405: "RouxBots",
-        9503: "EF5 CHAOS",
-        9717: "Poultronix",
-        9734: "Jasper County Robotics",
-        10101: "Critical Hit",
-        10217: "Catahoula Blue Dogs",
-        10308: "HiveMind",
-        10309: "Jayhawks Robotics",
-        10661: "Blue Phoenix",
-        10655: "Spartan Synergy",
-        10929: "Tarpon Robotics",
-        10943: "WJH RoboStangs",
-        10961: "Hyper Wave",
-        11107: "FARMBots",
-        11265: "Rockbotics -FRC",
-        11287: "Canton Career Center",
-        11343: "JPS High School Robotics",
-        11345: "Long Beach RoboBearcats"
-    };
-
     // Words blocked by the profanity filter
     const BAD_WORDS = ["damn", "hell", "shit", "fuck", "bitch", "crap", "ass", "bastard", "dick", "piss", "cock", "pussy", "slut", "whore", "nigger", "fag", "retard", "sex", "nude", "gyatt", "nigga","hitler", "nigg"];
     
@@ -831,26 +879,29 @@
         });
     });
 
-    // Toggle Logic for Terrain Section (NOW DISABLED/UNUSED)
-    // The section is always visible now, but keeping function to prevent JS errors if called elsewhere
-    function toggleTerrainSection() {
-        // Functionality removed as requested.
-        // The terrainCard is no longer hidden by default.
-    }
-
-    // Displays Team Name when a number is typed
+    // Displays Team Name when a number is typed, fully integrated with dynamic TBA List
     document.getElementById('teamNum').addEventListener('input', function() {
         const num = this.value;
         const disp = document.getElementById('teamNameDisplay');
-        if(TEAM_LIST[num]) {
-            disp.textContent = "✓ " + TEAM_LIST[num];
-            disp.style.color = "#000";
-            disp.style.background = "var(--accent)";
+        const hasTeamsLoaded = Object.keys(TEAM_LIST).length > 0;
+        
+        if (hasTeamsLoaded) {
+            if(TEAM_LIST[num]) {
+                disp.textContent = "✓ " + TEAM_LIST[num];
+                disp.style.color = "#000";
+                disp.style.background = "var(--accent)";
+            } else {
+                disp.textContent = num ? "Unknown Team" : "Waiting for input...";
+                disp.style.color = num ? "var(--text-secondary)" : "var(--accent)";
+                disp.style.background = "rgba(255,255,255,0.05)";
+            }
         } else {
-            disp.textContent = num ? "Unknown Team" : "Waiting for input...";
-            disp.style.color = num ? "var(--text-secondary)" : "var(--accent)";
-            disp.style.background = "rgba(255,255,255,0.05)";
+            // Offline Mode Fallback: Allow input even if TBA failed to load
+            disp.textContent = num ? "Team " + num : "Waiting for input...";
+            disp.style.color = num ? "#000" : "var(--accent)";
+            disp.style.background = num ? "var(--accent)" : "rgba(255,255,255,0.05)";
         }
+        
         updateNavButtons(); 
     });
 
@@ -900,9 +951,13 @@
                 document.getElementById('profanity-name').style.display = 'none'; // Kept for compatibility
             }
             
-            // Team must be in the list? (Optional logic, currently warns but blocks if invalid)
-            if (!TEAM_LIST[team]) {
-                document.getElementById('err-team').style.display = team ? 'block' : 'none';
+            // Team Verification (with safe fallback for offline mode)
+            const hasTeamsLoaded = Object.keys(TEAM_LIST).length > 0;
+            if (!team) {
+                document.getElementById('err-team').style.display = 'none';
+                isValid = false;
+            } else if (hasTeamsLoaded && !TEAM_LIST[team]) {
+                document.getElementById('err-team').style.display = 'block';
                 isValid = false;
             } else {
                 document.getElementById('err-team').style.display = 'none';
@@ -1484,8 +1539,8 @@
         }
     }
 
-    // Run validation immediately on load
-    updateNavButtons();
 </script>
 </body>
 </html>
+
+```
