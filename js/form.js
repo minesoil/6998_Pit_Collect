@@ -37,6 +37,27 @@ function toggleDegreeOptions() {
         document.getElementById('pitchFreedomVal').value = '';
     }
 }
+// only show the degree thingy if i didnt select cannon
+function checkTurretType() {
+    const turretRadios = document.getElementsByName('turretType');
+    const degreeSection = document.getElementById('degree-section');
+    
+    let selectedValue = "";
+    
+    for (const radio of turretRadios) {
+        if (radio.checked) {
+            selectedValue = radio.value;
+            break;
+        }
+    }
+
+    // Show only for Single and Double
+    if (selectedValue === "Single" || selectedValue === "Double") {
+        degreeSection.style.display = "block";
+    } else {
+        degreeSection.style.display = "none";
+    }
+}
 
 function toggleAxisInput(axis) {
     const boxId = axis === 'yaw' ? 'yawFreedomBox' : 'pitchFreedomBox';
