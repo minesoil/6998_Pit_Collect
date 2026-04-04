@@ -24,12 +24,12 @@ document.documentElement.requestFullscreen().catch(err => console.log(err.messag
 document.exitFullscreen?.();
 }
 }
-
 function toggleDegreeOptions() {
 const yes = document.getElementById(‘canDegYes’).checked;
 const box = document.getElementById(‘degreeOptionsBox’);
 box.style.display = yes ? ‘block’ : ‘none’;
 if (!yes) {
+// Clear selections when hidden
 document.querySelectorAll(‘input[name=“turretAxis”]’).forEach(cb => cb.checked = false);
 document.getElementById(‘yawFreedomBox’).style.display   = ‘none’;
 document.getElementById(‘pitchFreedomBox’).style.display = ‘none’;
@@ -37,16 +37,19 @@ document.getElementById(‘yawFreedomVal’).value  = ‘’;
 document.getElementById(‘pitchFreedomVal’).value = ‘’;
 }
 }
-
 // only show the degree thingy if i didnt select cannon
 function checkTurretType() {
-const turretRadios  = document.getElementsByName(‘turretType’);
+const turretRadios = document.getElementsByName(‘turretType’);
 const degreeSection = document.getElementById(‘degree-section’);
 
-
+```
 let selectedValue = "";
+
 for (const radio of turretRadios) {
-    if (radio.checked) { selectedValue = radio.value; break; }
+    if (radio.checked) {
+        selectedValue = radio.value;
+        break;
+    }
 }
 
 // Show only for Single and Double
@@ -55,7 +58,7 @@ if (selectedValue === "Single" || selectedValue === "Double") {
 } else {
     degreeSection.style.display = "none";
 }
-
+```
 
 }
 
@@ -95,7 +98,7 @@ const val = this.value.toLowerCase().trim();
 eventDropdown.innerHTML = ‘’;
 if (!val) { eventDropdown.style.display = ‘none’; return; }
 
-
+```
 let count = 0;
 for (const key in EVENTS_DATA) {
     if (count > 50) break;
@@ -118,7 +121,7 @@ for (const key in EVENTS_DATA) {
     count++;
 }
 eventDropdown.style.display = count > 0 ? 'block' : 'none';
-
+```
 
 });
 
@@ -128,10 +131,10 @@ if (e.target !== eventSearchInput) eventDropdown.style.display = ‘none’;
 
 // ── Team Number Input ──────────────────────────────────────────────────────
 document.getElementById(‘teamNum’).addEventListener(‘input’, function() {
-const num  = this.value;
-const disp = document.getElementById(‘teamNameDisplay’);
+const num       = this.value;
+const disp      = document.getElementById(‘teamNameDisplay’);
 
-
+```
 // Reset image UI and cancel pending fetches
 resetImageUI();                     // defined in tba.js
 clearTimeout(imageFetchTimeout);
@@ -171,14 +174,14 @@ if (tbaStatus === "loaded") {
 }
 
 updateNavButtons();
-
+```
 
 });
 
 // Monitor other inputs for live validation
 [‘scouterName’,‘notes’,‘weight’,‘capacity’,‘preload’,‘autoTotal’,
 ‘climbTime’,‘intakeOtherVal’,‘visOtherVal’,‘visSoftOtherVal’,
-‘yawFreedomVal’,‘pitchFreedomVal’
+‘turretCount’,‘yawFreedomVal’,‘pitchFreedomVal’
 ].forEach(id => {
 const el = document.getElementById(id);
 if (el) el.addEventListener(‘input’, updateNavButtons);
@@ -195,7 +198,7 @@ function updateNavButtons() {
 const nextBtn = document.getElementById(‘nextBtn’);
 let isValid   = true;
 
-
+```
 if (currentPage === 0) {
     const name = document.getElementById('scouterName').value.trim();
     const team = document.getElementById('teamNum').value.trim();
@@ -281,43 +284,38 @@ else if (currentPage === 3) {
 }
 
 nextBtn.disabled = !isValid;
-
+```
 
 }
 
 function navigate(dir) {
 if (dir === 1 && document.getElementById(‘nextBtn’).disabled) return;
 
-
+```
 document.getElementById(`page${currentPage}`).classList.remove('active');
 currentPage += dir;
 document.getElementById(`page${currentPage}`).classList.add('active');
 
-const navBar  = document.querySelector('.nav-bar');
-const backBtn = document.getElementById('backBtn');
-const nextBtn = document.getElementById('nextBtn');
+document.getElementById('backBtn').style.visibility = currentPage === 0 ? 'hidden' : 'visible';
 
 if (currentPage === 4) {
-    // Review page — hide entire nav bar, buttons inside page handle navigation
-    navBar.style.display = 'none';
+    document.getElementById('nextBtn').style.display = 'none';
+    document.querySelector('.nav-bar').style.display = 'none';
     document.body.style.paddingBottom = '0';
     prepareReview();
 } else if (currentPage === 5) {
-    // Path drawing page — hide entire nav bar
-    navBar.style.display = 'none';
+    document.getElementById('nextBtn').style.display = 'none';
+    document.querySelector('.nav-bar').style.display = 'none';
     document.body.style.paddingBottom = '0';
-    initCanvas();           // defined in canvas.js
+    initCanvas();
 } else {
-    // Normal pages — show nav bar
-    navBar.style.display  = 'flex';
+    document.getElementById('nextBtn').style.display = 'block';
+    document.querySelector('.nav-bar').style.display = 'flex';
     document.body.style.paddingBottom = '100px';
-    nextBtn.style.display = 'block';
-    backBtn.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
     updateNavButtons();
 }
-
 window.scrollTo(0, 0);
-
+```
 
 }
 
@@ -353,7 +351,7 @@ document.getElementById(‘reviewText’).innerHTML = html;
 function resetForm() {
 if (!confirm(“Are you sure you want to finish and reset?”)) return;
 
-
+```
 document.getElementById('scoutForm').reset();
 document.getElementById('eventSearch').value = '';
 
@@ -374,9 +372,9 @@ if (currentImageFetchController) {
 
 document.getElementById('qrHeader').style.display     = 'none';
 document.getElementById('pathQrHeader').style.display  = 'none';
-document.querySelectorAll('.error-msg').forEach(el     => el.style.display = 'none');
+document.querySelectorAll('.error-msg').forEach(el    => el.style.display = 'none');
 document.querySelectorAll('.profanity-alert').forEach(el => el.style.display = 'none');
-document.querySelectorAll('.violation').forEach(el     => el.classList.remove('violation'));
+document.querySelectorAll('.violation').forEach(el    => el.classList.remove('violation'));
 
 document.getElementById('qrcode').innerHTML     = '';
 document.getElementById('qrcode').style.display = 'none';
@@ -394,18 +392,17 @@ strokes = []; currentStroke = [];    // defined in canvas.js
 document.querySelector('.page.active').classList.remove('active');
 currentPage = 0;
 document.getElementById('page0').classList.add('active');
-
-// Restore nav bar
-const navBar = document.querySelector('.nav-bar');
-navBar.style.display = 'flex';
-document.body.style.paddingBottom = '100px';
 document.getElementById('backBtn').style.visibility = 'hidden';
 document.getElementById('nextBtn').style.display    = 'block';
+
+// Restore nav bar
+document.querySelector('.nav-bar').style.display = 'flex';
+document.body.style.paddingBottom = '100px';
 
 document.getElementById('teamNum').dispatchEvent(new Event('input'));
 updateNavButtons();
 window.scrollTo(0, 0);
-
+```
 
 }
 
