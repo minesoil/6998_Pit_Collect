@@ -169,22 +169,22 @@
             <span class="sub-label">Turret Type (砲台類型)</span>
             <div class="grid-select" style="grid-template-columns: repeat(3, 1fr);">
                 <label class="toggle-btn">
-                    <input type="radio" name="turretType" value="Single">
-                    單旋<br><span style="font-size:0.7em">(Single)</span>
+                    <input type="radio" name="turretType" value="Single" onchange="checkTurretType()">
+                    單旋轉炮台<br><span style="font-size:0.7em">(Single)</span>
                 </label>
                 <label class="toggle-btn">
-                    <input type="radio" name="turretType" value="Double">
-                    双旋<br><span style="font-size:0.7em">(Double)</span>
+                    <input type="radio" name="turretType" value="Double" onchange="checkTurretType()">
+                    双旋轉炮台<br><span style="font-size:0.7em">(Double)</span>
                 </label>
                 <label class="toggle-btn">
-                    <input type="radio" name="turretType" value="Cannon">
-                    寬炮<br><span style="font-size:0.7em">(Wide Shooter)</span>
+                    <input type="radio" name="turretType" value="Wide Shooter" onchange="checkTurretType()">
+                    寬炮台<br><span style="font-size:0.7em">(Wide Shooter)</span>
                 </label>
             </div>
 
             <!-- Can change degree? -->
-            <div style="margin-top:15px;">
-                <span class="sub-label">可調整角度? (Can Change Degree?)</span>
+                <div id="degree-section" style="margin-top:15px; display:none;">
+                <span class="sub-label">可調仰角? (Can Change Degree?)</span>
                 <div class="grid-select" style="grid-template-columns: repeat(2, 1fr);">
                     <label class="toggle-btn">
                         <input type="radio" name="canChangeDegree" value="Yes" id="canDegYes" onchange="toggleDegreeOptions()">
