@@ -12,8 +12,6 @@ function generateQR() {
     const finalWeightLbs = unit === 'kg' ? (weightVal * 2.20462).toFixed(1) : weightVal;
     const turretType = document.querySelector('input[name="turretType"]:checked')?.value || 'None';
     const canDeg     = document.querySelector('input[name="canChangeDegree"]:checked')?.value || 'No';
-    const turretType = document.querySelector('input[name="turretType"]:checked')?.value || 'None';
-    const canDeg     = document.querySelector('input[name="canChangeDegree"]:checked')?.value || 'No';
     const tCount = document.getElementById('turretCount').value || "0";
 
     let turVals = `Type: ${turretType} | CanChangeDeg: ${canDeg} | Count: ${tCount}`;
