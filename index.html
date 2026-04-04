@@ -735,144 +735,119 @@
         }
     }
 
-    /* =========================================
-       ROBOT IMAGE FETCH — FIXED VERSION
-       Strategy:
-       1. Check local memory cache first (instant)
-       2. Try TBA avatar CDN (fast, always works, no CORS)
-       3. Try TBA media API for real robot photo (years 2026→2018)
-       4. Fall back to "no image" state
-    ========================================= */
-    async function fetchRobotImage(teamNum) {
-        const imgEl        = document.getElementById('robotImage');
-        const container    = document.getElementById('robotImageContainer');
-        const statusEl     = document.getElementById('imageStatus');
-        const spinnerEl    = document.getElementById('imageLoadingSpinner');
+async function fetchRobotImage(teamNum) {
+    const imgEl     = document.getElementById('robotImage');
+    const container = document.getElementById('robotImageContainer');
+    const statusEl  = document.getElementById('imageStatus');
+    const spinnerEl = document.getElementById('imageLoadingSpinner');
 
-        // --- Reset display state ---
-        imgEl.style.display     = 'none';
-        container.style.display = 'none';
-        statusEl.style.display  = 'none';
-        spinnerEl.style.display = 'none';
-        imgEl.src = '';
+    imgEl.style.display     = 'none';
+    container.style.display = 'none';
+    statusEl.style.display  = 'none';
+    spinnerEl.style.display = 'none';
+    imgEl.src = '';
 
-        // Cancel any previous in-flight fetch
-        if (currentImageFetchController) {
-            currentImageFetchController.abort();
-        }
-        currentImageFetchController = new AbortController();
-        const signal = currentImageFetchController.signal;
+    if (currentImageFetchController) currentImageFetchController.abort();
+    currentImageFetchController = new AbortController();
+    const signal = currentImageFetchController.signal;
 
-        // --- 1. Check memory/localStorage cache ---
-        if (TEAM_IMAGES[teamNum]) {
-            if (TEAM_IMAGES[teamNum] === 'none') {
-                statusEl.style.display = 'block';
-            } else {
-                showImage(imgEl, container, statusEl, TEAM_IMAGES[teamNum]);
-            }
-            return;
-        }
+    // Only use cache if it's a real URL (never trust cached 'none')
+    const cached = TEAM_IMAGES[teamNum];
+    if (cached && cached !== 'none') {
+        tryLoadImage(imgEl, container, statusEl, cached, teamNum);
+        return;
+    }
 
-        // --- 2. Show spinner while fetching ---
-        spinnerEl.style.display = 'block';
+    spinnerEl.style.display = 'block';
 
-        try {
-            // --- 3. Try TBA media API across recent years in parallel ---
-            // This is the most reliable source for actual robot photos.
-            const yearsToCheck = [2026, 2025, 2024, 2023, 2022, 2020, 2019, 2018];
+    try {
+        const yearsToCheck = [2026, 2025, 2024, 2023, 2022, 2020, 2019, 2018];
+        const mediaRequests = yearsToCheck.map(year =>
+            fetch(
+                `https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/${year}`,
+                { headers: { 'X-TBA-Auth-Key': TBA_API_KEY }, signal }
+            )
+            .then(r => r.ok ? r.json() : [])
+            .catch(() => [])
+        );
 
-            const mediaRequests = yearsToCheck.map(year =>
-                fetch(
-                    `https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/${year}`,
-                    { headers: { 'X-TBA-Auth-Key': TBA_API_KEY }, signal }
-                )
-                .then(r => r.ok ? r.json() : [])
-                .catch(() => [])
-            );
+        const allResults = await Promise.all(mediaRequests);
+        let candidateUrls = [];
 
-            const allResults = await Promise.all(mediaRequests);
-
-            // Walk from newest year to oldest; grab the first valid image URL
-            let foundUrl = null;
-            for (let i = 0; i < allResults.length; i++) {
-                const mediaArr = allResults[i];
-                if (!Array.isArray(mediaArr) || mediaArr.length === 0) continue;
-
-                for (const item of mediaArr) {
-                    // Priority 1: explicit direct_url that looks like an image
-                    if (item.direct_url && /\.(jpe?g|png|gif|webp)/i.test(item.direct_url)) {
-                        foundUrl = item.direct_url;
-                        break;
-                    }
-                    // Priority 2: imgur type — build URL from foreign_key
-                    if (item.type === 'imgur' && item.foreign_key) {
-                        // Use TBA's own CDN-proxied imgur URL to avoid hotlink blocks
-                        // Format: https://i.imgur.com/<key>l.jpg  ('l' = large thumbnail, avoids full-size CORS)
-                        foundUrl = `https://i.imgur.com/${item.foreign_key}l.jpg`;
-                        break;
-                    }
-                    // Priority 3: view_url as last resort
-                    if (item.view_url && /\.(jpe?g|png|gif|webp)/i.test(item.view_url)) {
-                        foundUrl = item.view_url;
-                        break;
-                    }
+        for (let i = 0; i < allResults.length; i++) {
+            const mediaArr = allResults[i];
+            if (!Array.isArray(mediaArr) || mediaArr.length === 0) continue;
+            for (const item of mediaArr) {
+                // direct_url is most reliable
+                if (item.direct_url && /\.(jpe?g|png|gif|webp)/i.test(item.direct_url)) {
+                    candidateUrls.push(item.direct_url);
                 }
-                if (foundUrl) break;
+                // Imgur: use TBA's own CDN-proxied version to avoid hotlink blocks
+                if (item.type === 'imgur' && item.foreign_key) {
+                    // TBA proxies imgur images through their own CDN — use view_url over direct_url
+                    if (item.view_url) candidateUrls.push(item.view_url);
+                }
             }
-
-            // --- 4. If no media photo, try TBA avatar CDN (always available, small icon) ---
-            if (!foundUrl) {
-                // TBA hosts avatars at this stable CDN URL — no CORS, no auth needed
-                const avatarUrl = `https://www.thebluealliance.com/avatar/2025/frc${teamNum}.png`;
-                try {
-                    const avatarRes = await fetch(avatarUrl, { signal });
-                    if (avatarRes.ok) {
-                        foundUrl = avatarUrl;
-                    }
-                } catch(_) {}
-            }
-
-            spinnerEl.style.display = 'none';
-
-            if (foundUrl && !signal.aborted) {
-                TEAM_IMAGES[teamNum] = foundUrl;
-                localStorage.setItem('TBA_IMAGES_2026_V4', JSON.stringify(TEAM_IMAGES));
-                showImage(imgEl, container, statusEl, foundUrl);
-            } else if (!signal.aborted) {
-                TEAM_IMAGES[teamNum] = 'none';
-                localStorage.setItem('TBA_IMAGES_2026_V4', JSON.stringify(TEAM_IMAGES));
-                statusEl.style.display = 'block';
-            }
-
-        } catch (err) {
-            spinnerEl.style.display = 'none';
-            if (err.name !== 'AbortError') {
-                console.warn('Image fetch error for team', teamNum, err);
-                statusEl.style.display = 'block';
-            }
+            if (candidateUrls.length >= 3) break; // Enough candidates, stop early
         }
-    }
 
-    function showImage(imgEl, container, statusEl, url) {
-        imgEl.onload = function() {
-            container.style.display = 'block';
-            imgEl.style.display = 'block';
-            statusEl.style.display = 'none';
-        };
-        imgEl.onerror = function() {
-            // URL failed to load — mark as none and show fallback
-            const num = document.getElementById('teamNum').value;
-            if (num) {
-                TEAM_IMAGES[num] = 'none';
-                localStorage.setItem('TBA_IMAGES_2026_V4', JSON.stringify(TEAM_IMAGES));
-            }
-            container.style.display = 'none';
-            imgEl.style.display = 'none';
-            statusEl.style.display = 'block';
-        };
-        // Set src AFTER attaching handlers
-        imgEl.src = url;
+        // Try TBA avatar as final fallback candidate
+        candidateUrls.push(`https://www.thebluealliance.com/avatar/2025/frc${teamNum}.png`);
+        candidateUrls.push(`https://www.thebluealliance.com/avatar/2024/frc${teamNum}.png`);
+
+        spinnerEl.style.display = 'none';
+        if (signal.aborted) return;
+
+        // Try each candidate URL until one actually loads
+        tryNextCandidate(imgEl, container, statusEl, candidateUrls, 0, teamNum);
+
+    } catch (err) {
+        spinnerEl.style.display = 'none';
+        if (err.name !== 'AbortError') statusEl.style.display = 'block';
     }
+}
+
+function tryNextCandidate(imgEl, container, statusEl, urls, index, teamNum) {
+    if (index >= urls.length) {
+        // All candidates failed — show "no image" but DO NOT cache as 'none'
+        statusEl.style.display = 'block';
+        return;
+    }
+    const url = urls[index];
+    const testImg = new Image();
+    testImg.onload = function() {
+        // Confirmed working — cache and display
+        TEAM_IMAGES[teamNum] = url;
+        localStorage.setItem('TBA_IMAGES_2026_V4', JSON.stringify(TEAM_IMAGES));
+        imgEl.src = url;
+        imgEl.style.display = 'block';
+        container.style.display = 'block';
+        statusEl.style.display = 'none';
+    };
+    testImg.onerror = function() {
+        // This URL failed, try the next one
+        tryNextCandidate(imgEl, container, statusEl, urls, index + 1, teamNum);
+    };
+    testImg.src = url;
+}
+
+function tryLoadImage(imgEl, container, statusEl, url, teamNum) {
+    const testImg = new Image();
+    testImg.onload = function() {
+        imgEl.src = url;
+        imgEl.style.display = 'block';
+        container.style.display = 'block';
+        statusEl.style.display = 'none';
+    };
+    testImg.onerror = function() {
+        // Cached URL is now broken — delete from cache and retry fresh
+        delete TEAM_IMAGES[teamNum];
+        localStorage.setItem('TBA_IMAGES_2026_V4', JSON.stringify(TEAM_IMAGES));
+        fetchRobotImage(teamNum); // retry without cache
+    };
+    testImg.src = url;
+}
+
 
     /* =========================================
        EVENT FETCHING & AUTOCOMPLETE
