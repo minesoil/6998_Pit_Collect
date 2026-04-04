@@ -52,40 +52,73 @@
         /* HEADER STYLES */
         header {
             background: linear-gradient(180deg, #1a1a20 0%, var(--bg-deep) 100%);
-            padding: 20px;
+            padding: 15px;
             text-align: center;
             border-bottom: 2px solid var(--accent);
-            position: sticky; /* Sticks to top when scrolling */
+            position: sticky;
             top: 0;
             z-index: 100;
             box-shadow: 0 4px 20px rgba(0,0,0,0.7);
         }
-        header h1 { 
-            color: var(--accent); 
-            font-weight: 800; 
-            letter-spacing: 2px; 
-            font-size: 1.4rem; 
-            text-transform: uppercase; 
+        header h1 {
+            color: var(--accent);
+            font-weight: 800;
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            margin: 0;
         }
-        
+
+        /* HEADER LAYOUT */
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.7rem;
+        }
+        .header-left { flex: 1; text-align: left; }
+        .header-center { flex: 1; text-align: center; }
+        .header-right { flex: 1; text-align: right; }
+
         /* HEADER EXTRAS (Clock & Fullscreen) */
         .clock-display {
-            position: absolute; top: 6px; left: 12px; font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 1px; font-weight: 300;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            font-weight: 300;
         }
         .fs-btn {
-            position: absolute; top: 22px; left: 12px;
-            font-size: 0.7rem; color: var(--accent); border: 1px solid var(--accent);
-            padding: 4px 8px; border-radius: 8px; font-weight: 600; cursor: pointer;
-            background: transparent; transition: all 0.2s ease; text-transform: uppercase;
+            font-size: 0.65rem;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
         }
         .fs-btn:hover { background: var(--accent); color: var(--bg-deep); }
         .fs-btn:active { transform: scale(0.95); }
 
         /* Robot Counter Badge */
         .counter-badge {
-            position: absolute; top: 20px; right: 20px;
-            font-size: 0.75rem; color: var(--accent); border: 1px solid var(--accent);
-            padding: 4px 8px; border-radius: 8px; font-weight: 600;
+            font-size: 0.7rem;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 600px) {
+            header { padding: 12px; }
+            header h1 { font-size: 1rem; letter-spacing: 1px; }
+            .header-top { font-size: 0.6rem; }
+            .fs-btn { font-size: 0.55rem; padding: 2px 4px; }
+            .counter-badge { font-size: 0.6rem; padding: 2px 4px; }
         }
 
         /* LAYOUT CONTAINERS */
@@ -235,10 +268,18 @@
 <body>
 
 <header>
-    <div class="clock-display" id="liveClock">--:--:--</div>
-    <button type="button" class="fs-btn" onclick="toggleFullScreen()">⛶ Fullscreen</button>
-    <h1> Unipards 2026 Pit Collect</h1>
-    <div class="counter-badge" id="robotCounter">  [ROBOTS: 0]</div>
+    <div class="header-top">
+        <div class="header-left">
+            <div class="clock-display" id="liveClock">--:--:--</div>
+        </div>
+        <div class="header-center">
+            <button type="button" class="fs-btn" onclick="toggleFullScreen()">⛶ FS</button>
+        </div>
+        <div class="header-right">
+            <div class="counter-badge" id="robotCounter">ROBOTS: 0</div>
+        </div>
+    </div>
+    <h1>Unipards 2026 Pit Collect</h1>
 </header>
 
 <div class="container">
@@ -625,19 +666,25 @@
             <div class="section-title">Step 7: Draw Auto Path</div>
             <div class="card" style="text-align:center;">
                 <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">
-                    Draw the robot's autonomous path. (Lift finger to start new line)<br>
+                    Draw the robot's autonomous path or tap a dot for teams with no auto<br>
                     <span style="font-size: 0.8rem; color: var(--accent);">Map: FRC 2026 Rebuilt Field</span>
                 </p>
 
-                <div class="drawing-controls" style="justify-content: center;">
-                    <button type="button" class="btn" style="background: #333; color: white; padding: 10px;" onclick="clearCanvas()">Clear</button>
-                    <button type="button" class="btn" style="background: #333; color: white; padding: 10px;" onclick="undoLastStroke()">Undo</button>
+                <div id="drawingModeIndicator" style="background:rgba(212, 175, 55, 0.1); border:1px solid var(--accent); padding:8px; border-radius:8px; margin-bottom:15px; color:var(--accent); font-size:0.85rem; font-weight:600;">
+                    Mode: <span id="modeText">Drawing Line</span>
+                </div>
+
+                <div class="drawing-controls" style="justify-content: center; flex-wrap: wrap;">
+                    <button type="button" class="btn" style="background: #333; color: white; padding: 10px; flex: 0 1 auto;" onclick="toggleDrawMode()">
+                        <span id="toggleModeBtn">📍 Switch to Dot</span>
+                    </button>
+                    <button type="button" class="btn" style="background: #333; color: white; padding: 10px; flex: 0 1 auto;" onclick="clearCanvas()">Clear</button>
+                    <button type="button" class="btn" style="background: #333; color: white; padding: 10px; flex: 0 1 auto;" onclick="undoLastStroke()">Undo</button>
                 </div>
 
                 <!-- Canvas Container -->
                 <div id="fieldContainer">
                     <canvas id="fieldCanvas"></canvas>
-                    
                 </div>
 
                 <!-- ADDED: Big Team Label for Path QR -->
@@ -1084,17 +1131,23 @@
     const canvas = document.getElementById('fieldCanvas');
     const ctx = canvas.getContext('2d');
     let isDrawing = false;
-    let strokes = []; // Stores array of lines: [ [{x,y}, {x,y}], [{x,y}...] ]
+    let strokes = [];
     let currentStroke = [];
-    
-    // Color Palette for Distinct Paths
+    let drawingMode = 'line'; // 'line' or 'dot'
+
     const PATH_COLORS = [
-        "#00C851", // Green
-        "#33b5e5", // Blue
-        "#ff4444", // Red
-        "#ffbb33", // Orange
-        "#aa66cc"  // Purple
+        "#00C851",
+        "#33b5e5",
+        "#ff4444",
+        "#ffbb33",
+        "#aa66cc"
     ];
+
+    function toggleDrawMode() {
+        drawingMode = drawingMode === 'line' ? 'dot' : 'line';
+        document.getElementById('modeText').innerText = drawingMode === 'line' ? 'Drawing Line' : 'Placing Dot';
+        document.getElementById('toggleModeBtn').innerText = drawingMode === 'line' ? '📍 Switch to Dot' : '✏️ Switch to Line';
+    }
     
     // Resize canvas to match the CSS-defined container size
     function initCanvas() {
@@ -1113,61 +1166,68 @@
     // Draw the Field and any existing strokes
     function drawFieldBackground() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // 1. Draw finished strokes
+
         if (strokes.length > 0) {
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
             strokes.forEach((stroke, index) => {
-                if (stroke.length < 2) return;
-                
-                // Cycle through colors based on index
                 const color = PATH_COLORS[index % PATH_COLORS.length];
-                
-                // --- Draw Shadow (Glow) ---
-                ctx.beginPath();
-                ctx.strokeStyle = "rgba(0,0,0,0.5)";
-                ctx.lineWidth = 4;
-                const startX_S = (stroke[0].x / 100) * canvas.width + 2; // Offset shadow
-                const startY_S = (stroke[0].y / 100) * canvas.height + 2;
-                ctx.moveTo(startX_S, startY_S);
-                for (let i = 1; i < stroke.length; i++) {
-                    ctx.lineTo((stroke[i].x / 100) * canvas.width + 2, (stroke[i].y / 100) * canvas.height + 2);
+
+                if (stroke.length === 1) {
+                    const x = (stroke[0].x / 100) * canvas.width;
+                    const y = (stroke[0].y / 100) * canvas.height;
+
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 8, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 8, 0, Math.PI * 2);
+                    ctx.stroke();
+                } else if (stroke.length > 1) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = "rgba(0,0,0,0.5)";
+                    ctx.lineWidth = 6;
+                    const startX_S = (stroke[0].x / 100) * canvas.width + 2;
+                    const startY_S = (stroke[0].y / 100) * canvas.height + 2;
+                    ctx.moveTo(startX_S, startY_S);
+                    for (let i = 1; i < stroke.length; i++) {
+                        ctx.lineTo((stroke[i].x / 100) * canvas.width + 2, (stroke[i].y / 100) * canvas.height + 2);
+                    }
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 3;
+
+                    const startX = (stroke[0].x / 100) * canvas.width;
+                    const startY = (stroke[0].y / 100) * canvas.height;
+                    ctx.moveTo(startX, startY);
+
+                    for (let i = 1; i < stroke.length; i++) {
+                        const px = (stroke[i].x / 100) * canvas.width;
+                        const py = (stroke[i].y / 100) * canvas.height;
+                        ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+
+                    ctx.fillStyle = "#00C851";
+                    ctx.beginPath();
+                    ctx.arc(startX, startY, 6, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    const last = stroke[stroke.length-1];
+                    const endX = (last.x / 100) * canvas.width;
+                    const endY = (last.y / 100) * canvas.height;
+                    ctx.fillStyle = "#ff4444";
+                    ctx.beginPath();
+                    ctx.arc(endX, endY, 6, 0, Math.PI * 2);
+                    ctx.fill();
                 }
-                ctx.stroke();
-
-                // --- Draw Path Line ---
-                ctx.beginPath();
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 2; // Thinner, professional line
-                
-                const startX = (stroke[0].x / 100) * canvas.width;
-                const startY = (stroke[0].y / 100) * canvas.height;
-                ctx.moveTo(startX, startY);
-
-                for (let i = 1; i < stroke.length; i++) {
-                    const px = (stroke[i].x / 100) * canvas.width;
-                    const py = (stroke[i].y / 100) * canvas.height;
-                    ctx.lineTo(px, py);
-                }
-                ctx.stroke();
-
-                // --- Draw Endpoints (Start=Green Dot, End=Red Dot) ---
-                // Start
-                ctx.fillStyle = "#00C851"; 
-                ctx.beginPath();
-                ctx.arc(startX, startY, 4, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // End
-                const last = stroke[stroke.length-1];
-                const endX = (last.x / 100) * canvas.width;
-                const endY = (last.y / 100) * canvas.height;
-                ctx.fillStyle = "#ff4444";
-                ctx.beginPath();
-                ctx.arc(endX, endY, 4, 0, Math.PI * 2);
-                ctx.fill();
             });
         }
 
@@ -1196,7 +1256,7 @@
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
         let clientX, clientY;
-        
+
         if (e.changedTouches) {
             clientX = e.changedTouches[0].clientX;
             clientY = e.changedTouches[0].clientY;
@@ -1213,10 +1273,19 @@
 
     function startDraw(e) {
         if(e.cancelable) e.preventDefault();
-        isDrawing = true;
-        currentStroke = []; // Start a new line
+
         const pos = getPos(e);
-        addPoint(pos.x, pos.y);
+
+        if (drawingMode === 'dot') {
+            const xPct = parseFloat((pos.x / canvas.width * 100).toFixed(1));
+            const yPct = parseFloat((pos.y / canvas.height * 100).toFixed(1));
+            strokes.push([{ x: xPct, y: yPct }]);
+            drawFieldBackground();
+        } else {
+            isDrawing = true;
+            currentStroke = [];
+            addPoint(pos.x, pos.y);
+        }
     }
 
     function draw(e) {
@@ -1232,7 +1301,7 @@
         if(e.cancelable) e.preventDefault();
         isDrawing = false;
         if (currentStroke.length > 0) {
-            strokes.push(currentStroke); // Save the finished line
+            strokes.push(currentStroke);
             currentStroke = [];
         }
         drawFieldBackground();
@@ -1240,21 +1309,18 @@
 
     // Convert pixel coordinates to Percentage (0-100) for resolution independence
     function addPoint(pixelX, pixelY) {
-        // Keep precise for drawing logic
         const xPct = parseFloat((pixelX / canvas.width * 100).toFixed(1));
         const yPct = parseFloat((pixelY / canvas.height * 100).toFixed(1));
-        
-        // OPTIMIZATION: Only add point if it is far enough from the last one
+
         if (currentStroke.length > 0) {
             const last = currentStroke[currentStroke.length - 1];
             const dx = xPct - last.x;
             const dy = yPct - last.y;
             const dist = Math.sqrt(dx*dx + dy*dy);
-            
-            // Threshold increased to 6.0% (approx 1 meter)
-            if (dist < 6.0) return; 
+
+            if (dist < 2.5) return;
         }
-        
+
         currentStroke.push({ x: xPct, y: yPct });
     }
 
