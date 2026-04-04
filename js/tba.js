@@ -300,3 +300,6 @@ function tryLoadImage(imgEl, container, statusEl, url, teamNum) {
 
     testImg.src = url;
 }
+// ── Startup ────────────────────────────────────────────────────────────────
+fetchEvents();
+initTBA();
