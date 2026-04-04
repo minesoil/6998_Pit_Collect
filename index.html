@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Unipards 2026 Pit Collect</title>
 
-```
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -308,7 +307,6 @@
         font-size: 0.8rem;
     }
 </style>
-```
 
 </head>
 <body>
@@ -769,7 +767,7 @@
         spinnerEl.style.display = 'block';
 
         try {
-            const yearsToCheck = [2026];
+            const yearsToCheck = [2026, 2025];
             const mediaRequests = yearsToCheck.map(year =>
                 fetch(
                     `https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/${year}`,
@@ -786,21 +784,16 @@
                 const mediaArr = allResults[i];
                 if (!Array.isArray(mediaArr) || mediaArr.length === 0) continue;
                 for (const item of mediaArr) {
-                    // view_url preferred for imgur — routes through TBA CDN, avoids hotlink blocks
                     if (item.type === 'imgur' && item.view_url) {
                         candidateUrls.push(item.view_url);
                     }
-                    // direct_url for anything that looks like an image file
                     if (item.direct_url && /\.(jpe?g|png|gif|webp)/i.test(item.direct_url)) {
                         candidateUrls.push(item.direct_url);
                     }
                 }
                 if (candidateUrls.length >= 3) break;
             }
-
-            // TBA avatar CDN as final fallbacks — no CORS, no auth needed
-            candidateUrls.push(`https://www.thebluealliance.com/avatar/2025/frc${teamNum}.png`);
-            candidateUrls.push(`https://www.thebluealliance.com/avatar/2024/frc${teamNum}.png`);
+            // No avatar fallback — if no 2025/2026 media found, show "no image"
 
             spinnerEl.style.display = 'none';
             if (signal.aborted) return;
