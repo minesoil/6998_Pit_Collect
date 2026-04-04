@@ -73,7 +73,7 @@ badge.innerText = "ROBOTS: " + count;
 // ── Path QR ───────────────────────────────────────────────────────────────
 function generatePathQR() {
 if (strokes.length === 0) {
-alert("Please draw at least one path segment.");
+alert("Please draw at least one path segment or place a dot.");
 return;
 }
 
@@ -90,7 +90,8 @@ qrContainer.innerHTML     = '';
 qrContainer.style.display = 'block';
 
 strokes.forEach((stroke, index) => {
-if (stroke.length < 2) return;
+// Accept both single-point dots (length === 1) and multi-point paths (length >= 2)
+if (stroke.length < 1) return;
 
 const pathString = stroke.map(p => `${Math.round(p.x)},${Math.round(p.y)}`).join('|');
 const compressed = LZString.compressToBase64(
@@ -101,7 +102,8 @@ const wrapper = document.createElement('div');
 wrapper.style.cssText = "margin-bottom:20px;padding:15px;background:#fff;border-radius:10px;color:#000;text-align:center;";
 
 const label = document.createElement('div');
-label.innerText = `Team ${teamNum}${teamName ? ` (${teamName})` : ''}\nAuto Path #${index + 1}`;
+const entryType = stroke.length === 1 ? 'Position Dot' : `Auto Path #${index + 1}`;
+label.innerText = `Team ${teamNum}${teamName ? ` (${teamName})` : ''}\n${entryType}`;
 label.style.cssText = "font-weight:bold;margin-bottom:10px;font-size:1.1rem;line-height:1.4;";
 
 const qrDiv = document.createElement('div');
