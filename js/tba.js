@@ -22,7 +22,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 6000) {
 const controller = new AbortController();
 const id = setTimeout(() => controller.abort(), timeoutMs);
 try {
-const response = await fetch(url, { …options, signal: controller.signal });
+const response = await fetch(url, { ...options, signal: controller.signal });
 clearTimeout(id);
 return response;
 } catch (err) {
@@ -40,11 +40,10 @@ try { EVENTS_DATA = JSON.parse(cached); } catch(e) {}
 updateEventStatusDisplay();
 }
 
-
 try {
     if (Object.keys(EVENTS_DATA).length === 0) disp.textContent = "Fetching Event List from TBA...";
     const res = await fetchWithTimeout(
-        https://www.thebluealliance.com/api/v3/events/2026/simple,
+        `https://www.thebluealliance.com/api/v3/events/2026/simple`,
         { headers: { 'X-TBA-Auth-Key': TBA_API_KEY } }
     );
     if (res.ok) {
@@ -62,19 +61,18 @@ try {
     }
 }
 
-
 }
 
 function updateEventStatusDisplay() {
 const disp = document.getElementById('eventStatusDisplay');
 if (EVENTS_DATA[EVENT_KEY]) {
-disp.textContent = ✓ Selected: ${EVENTS_DATA[EVENT_KEY].name} (${EVENT_KEY});
+disp.textContent = `✓ Selected: ${EVENTS_DATA[EVENT_KEY].name} (${EVENT_KEY})`;
 disp.style.color      = "#000";
-disp.style.background = "var(–accent)";
+disp.style.background = "var(--accent)";
 disp.style.borderRadius = "8px";
 } else {
-disp.textContent = Selected: ${EVENT_KEY};
-disp.style.color      = "var(–text-main)";
+disp.textContent = `Selected: ${EVENT_KEY}`;
+disp.style.color      = "var(--text-main)";
 disp.style.background = "rgba(255,255,255,0.05)";
 }
 }
@@ -85,13 +83,11 @@ EVENT_KEY = key;
 localStorage.setItem('TBA_LAST_EVENT', EVENT_KEY);
 updateEventStatusDisplay();
 
-
 TEAM_LIST = {};
 document.getElementById('teamNameDisplay').innerHTML = "Switching events...";
 document.getElementById('teamNameDisplay').style.background = "rgba(255,255,255,0.05)";
 resetImageUI();
 initTBA();
-
 
 }
 
@@ -101,7 +97,6 @@ tbaStatus = "loading";
 const disp     = document.getElementById('teamNameDisplay');
 const cacheKey = 'TBA_TEAM_LIST_' + EVENT_KEY + '_V3';
 const cached   = localStorage.getItem(cacheKey);
-
 
 if (cached) {
     try { TEAM_LIST = JSON.parse(cached); tbaStatus = "loaded"; } catch(e) { TEAM_LIST = {}; }
@@ -116,16 +111,16 @@ if (tbaStatus === "loading") {
 try {
     let allTeams = [];
     const response = await fetchWithTimeout(
-        https://www.thebluealliance.com/api/v3/event/${EVENT_KEY}/teams/simple,
+        `https://www.thebluealliance.com/api/v3/event/${EVENT_KEY}/teams/simple`,
         { headers: { 'X-TBA-Auth-Key': TBA_API_KEY } }
     );
-    if (!response.ok) throw new Error(TBA API Error: ${response.status});
+    if (!response.ok) throw new Error(`TBA API Error: ${response.status}`);
     const teams = await response.json();
 
     if (teams.length === 0) {
         // Championship event — fetch from divisions
         const eventRes = await fetchWithTimeout(
-            https://www.thebluealliance.com/api/v3/event/${EVENT_KEY},
+            `https://www.thebluealliance.com/api/v3/event/${EVENT_KEY}`,
             { headers: { 'X-TBA-Auth-Key': TBA_API_KEY } }
         );
         if (eventRes.ok) {
@@ -134,7 +129,7 @@ try {
                 const divResults = await Promise.all(
                     eventData.division_keys.map(divKey =>
                         fetchWithTimeout(
-                            https://www.thebluealliance.com/api/v3/event/${divKey}/teams/simple,
+                            `https://www.thebluealliance.com/api/v3/event/${divKey}/teams/simple`,
                             { headers: { 'X-TBA-Auth-Key': TBA_API_KEY } }
                         ).then(r => r.ok ? r.json() : [])
                     )
@@ -164,7 +159,6 @@ try {
     document.getElementById('teamNum').dispatchEvent(new Event('input'));
 }
 
-
 }
 
 // ── Robot Image ────────────────────────────────────────────────────────────
@@ -189,7 +183,6 @@ const container = document.getElementById('robotImageContainer');
 const statusEl  = document.getElementById('imageStatus');
 const spinnerEl = document.getElementById('imageLoadingSpinner');
 
-
 resetImageUI();
 
 // Cancel any previous in-flight request
@@ -210,12 +203,12 @@ try {
     // Fetch 2026 and 2025 media in parallel
     const [media2026, media2025] = await Promise.all([
         fetch(
-            https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/2026,
+            `https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/2026`,
             { headers: { 'X-TBA-Auth-Key': TBA_API_KEY }, signal }
         ).then(r => r.ok ? r.json() : []).catch(() => []),
 
         fetch(
-            https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/2025,
+            `https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/2025`,
             { headers: { 'X-TBA-Auth-Key': TBA_API_KEY }, signal }
         ).then(r => r.ok ? r.json() : []).catch(() => [])
     ]);
@@ -243,7 +236,6 @@ try {
     }
 }
 
-
 }
 
 // Pull usable image URLs out of a TBA media array
@@ -257,7 +249,7 @@ if (item.view_url)   urls.push(item.view_url);
 if (item.direct_url) urls.push(item.direct_url);
 }
 // anything with a direct image file URL
-if (item.direct_url && /.(jpe?g|png|gif|webp)/i.test(item.direct_url)) {
+if (item.direct_url && /\.(jpe?g|png|gif|webp)/i.test(item.direct_url)) {
 if (!urls.includes(item.direct_url)) urls.push(item.direct_url);
 }
 }
@@ -271,7 +263,6 @@ if (index >= urls.length) {
 statusEl.style.display = 'block';
 return;
 }
-
 
 const url     = urls[index];
 const testImg = new Image();
@@ -292,13 +283,11 @@ testImg.onerror = function() {
 
 testImg.src = url;
 
-
 }
 
 // Load a previously cached URL — auto-heals if it has since gone stale
 function tryLoadImage(imgEl, container, statusEl, url, teamNum) {
 const testImg = new Image();
-
 
 testImg.onload = function() {
     imgEl.src              = url;
@@ -316,8 +305,8 @@ testImg.onerror = function() {
 
 testImg.src = url;
 
-
 }
+
 // ── Startup ────────────────────────────────────────────────────────────────
 fetchEvents();
 initTBA();
