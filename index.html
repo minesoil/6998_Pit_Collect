@@ -164,23 +164,67 @@
 
         <div class="card">
             <label>Turrets (砲台)</label>
-            <span class="sub-label">Turret Count (砲台數量)</span>
-            <input type="number" id="turretCount" placeholder="e.g. 1" min="0">
+
+            <!-- Turret Type — select one -->
+            <span class="sub-label">Turret Type (砲台類型)</span>
+            <div class="grid-select" style="grid-template-columns: repeat(3, 1fr);">
+                <label class="toggle-btn">
+                    <input type="radio" name="turretType" value="Single">
+                    單旋<br><span style="font-size:0.7em">(Single)</span>
+                </label>
+                <label class="toggle-btn">
+                    <input type="radio" name="turretType" value="Double">
+                    双旋<br><span style="font-size:0.7em">(Double)</span>
+                </label>
+                <label class="toggle-btn">
+                    <input type="radio" name="turretType" value="Cannon">
+                    實炮<br><span style="font-size:0.7em">(Cannon)</span>
+                </label>
+            </div>
+
+            <!-- Can change degree? -->
             <div style="margin-top:15px;">
-                <span class="sub-label">Turret Features & Freedom (自由度)</span>
-                <div class="grid-select">
-                    <label class="toggle-btn"><input type="checkbox" name="turret" value="Yaw" id="yawTrigger">Yaw (Horizontal)</label>
-                    <label class="toggle-btn"><input type="checkbox" name="turret" value="Pitch" id="pitchTrigger">Pitch (Vertical)</label>
+                <span class="sub-label">可調整角度? (Can Change Degree?)</span>
+                <div class="grid-select" style="grid-template-columns: repeat(2, 1fr);">
+                    <label class="toggle-btn">
+                        <input type="radio" name="canChangeDegree" value="Yes" id="canDegYes" onchange="toggleDegreeOptions()">
+                        可以<br><span style="font-size:0.7em">(Yes)</span>
+                    </label>
+                    <label class="toggle-btn">
+                        <input type="radio" name="canChangeDegree" value="No" id="canDegNo" onchange="toggleDegreeOptions()">
+                        不行<br><span style="font-size:0.7em">(No)</span>
+                    </label>
                 </div>
+            </div>
+
+            <!-- Degree of Freedom — shown only if Yes -->
+            <div class="conditional-input" id="degreeOptionsBox" style="display:none;">
+                <span class="sub-label">自由度方向 (Degree of Freedom — select all that apply)</span>
+                <div class="grid-select" style="grid-template-columns: repeat(2, 1fr);">
+                    <label class="toggle-btn">
+                        <input type="checkbox" name="turretAxis" value="Yaw" id="yawTrigger" onchange="toggleAxisInput('yaw')">
+                        偏轉自由度<br><span style="font-size:0.7em">(Yaw / Horizontal)</span>
+                    </label>
+                    <label class="toggle-btn">
+                        <input type="checkbox" name="turretAxis" value="Pitch" id="pitchTrigger" onchange="toggleAxisInput('pitch')">
+                        俯仰自由度<br><span style="font-size:0.7em">(Pitch / Vertical)</span>
+                    </label>
+                </div>
+
+                <!-- Yaw degree input -->
                 <div class="conditional-input" id="yawFreedomBox">
-                    <input type="text" id="yawFreedomVal" placeholder="Yaw Freedom (e.g., 180°, 360°)...">
+                    <span class="sub-label">偏轉角度範圍 (Yaw Degree of Freedom)</span>
+                    <input type="number" id="yawFreedomVal" placeholder="e.g. 360">
                 </div>
+
+                <!-- Pitch degree input -->
                 <div class="conditional-input" id="pitchFreedomBox">
-                    <input type="text" id="pitchFreedomVal" placeholder="Pitch Freedom (e.g., 45°, 90°)...">
+                    <span class="sub-label">俯仰角度範圍 (Pitch Degree of Freedom)</span>
+                    <input type="number" id="pitchFreedomVal" placeholder="e.g. 45">
                 </div>
             </div>
         </div>
-    </div>
+     </div>
 
     <!-- ── STEP 4: Autonomous ── -->
     <div class="page" id="page2">
