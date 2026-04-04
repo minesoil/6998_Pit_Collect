@@ -14,11 +14,11 @@ const turretType = document.querySelector(‘input[name=“turretType”]:checke
 const canDeg     = document.querySelector(‘input[name=“canChangeDegree”]:checked’)?.value || ‘No’;
 
 
-let turVals = `Type: ${turretType} | CanChangeDeg: ${canDeg}`;
+let turVals = Type: ${turretType} | CanChangeDeg: ${canDeg};
 if (document.getElementById('yawTrigger').checked)
-  turVals += ` | Yaw: ${document.getElementById('yawFreedomVal').value || '?'}°`;
+  turVals +=  | Yaw: ${document.getElementById('yawFreedomVal').value || '?'}°;
 if (document.getElementById('pitchTrigger').checked)
-  turVals += ` | Pitch: ${document.getElementById('pitchFreedomVal').value || '?'}°`;
+  turVals +=  | Pitch: ${document.getElementById('pitchFreedomVal').value || '?'}°;
 
 const tsvValues = [
     parseInt(teamNum),
@@ -85,7 +85,7 @@ const teamName = TEAM_LIST[teamNum]?.name ?? "";
 const eventCode = EVENT_KEY.toUpperCase();
 const matchNum  = "0";
 
-document.getElementById('pathQrTeamText').innerText     = `Team ${teamNum}`;
+document.getElementById('pathQrTeamText').innerText     = Team ${teamNum};
 document.getElementById('pathQrHeader').style.display   = "block";
 
 const qrContainer = document.getElementById('qrcodePath');
@@ -95,7 +95,7 @@ qrContainer.style.display = 'block';
 strokes.forEach((stroke, index) => {
     if (stroke.length < 2) return;
 
-    const pathString = stroke.map(p => `${Math.round(p.x)},${Math.round(p.y)}`).join('|');
+    const pathString = stroke.map(p => ${Math.round(p.x)},${Math.round(p.y)}).join('|');
     const compressed = LZString.compressToBase64(
         [eventCode, matchNum, teamNum, pathString].join('\t')
     );
@@ -104,7 +104,7 @@ strokes.forEach((stroke, index) => {
     wrapper.style.cssText = "margin-bottom:20px;padding:15px;background:#fff;border-radius:10px;color:#000;text-align:center;";
 
     const label = document.createElement('div');
-    label.innerText = `Team ${teamNum}${teamName ? ` (${teamName})` : ''}\nAuto Path #${index + 1}`;
+    label.innerText = Team ${teamNum}${teamName ?  (${teamName}) : ''}\nAuto Path #${index + 1};
     label.style.cssText = "font-weight:bold;margin-bottom:10px;font-size:1.1rem;line-height:1.4;";
 
     const qrDiv = document.createElement('div');
