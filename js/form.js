@@ -43,7 +43,6 @@ function checkTurretType() {
 const turretRadios  = document.getElementsByName('turretType');
 const degreeSection = document.getElementById('degree-section');
 
-
 let selectedValue = "";
 
 for (const radio of turretRadios) {
@@ -59,7 +58,6 @@ if (selectedValue === "Single" || selectedValue === "Double") {
 } else {
     degreeSection.style.display = "none";
 }
-
 
 }
 
@@ -99,20 +97,19 @@ const val = this.value.toLowerCase().trim();
 eventDropdown.innerHTML = '';
 if (!val) { eventDropdown.style.display = 'none'; return; }
 
-
 let count = 0;
 for (const key in EVENTS_DATA) {
     if (count > 50) break;
     const ev  = EVENTS_DATA[key];
-    const str = ${ev.key} ${ev.name} ${ev.city || ''}.toLowerCase();
+    const str = `${ev.key} ${ev.name} ${ev.city || ''}`.toLowerCase();
     if (!str.includes(val)) continue;
 
     const div = document.createElement('div');
     div.className = 'autocomplete-item';
-    div.innerHTML = 
+    div.innerHTML = `
         <div class="autocomplete-item-title">${ev.name}</div>
         <div class="autocomplete-item-sub">${ev.key} • ${ev.city || 'Location Unknown'}</div>
-    ;
+    `;
     div.addEventListener('click', () => {
         selectEvent(ev.key);
         eventSearchInput.value = '';
@@ -122,7 +119,6 @@ for (const key in EVENTS_DATA) {
     count++;
 }
 eventDropdown.style.display = count > 0 ? 'block' : 'none';
-
 
 });
 
@@ -135,7 +131,6 @@ document.getElementById('teamNum').addEventListener('input', function() {
 const num  = this.value;
 const disp = document.getElementById('teamNameDisplay');
 
-
 // Reset image UI and cancel pending fetches
 resetImageUI();
 clearTimeout(imageFetchTimeout);
@@ -147,10 +142,10 @@ if (currentImageFetchController) {
 if (tbaStatus === "loaded") {
     if (TEAM_LIST[num]) {
         const team = TEAM_LIST[num];
-        disp.innerHTML = 
+        disp.innerHTML = `
             <div style="font-size:1.15rem;margin-bottom:4px;color:#000;">✓ ${team.name}</div>
             <div style="font-size:0.8rem;color:#333;font-weight:600;">📍 ${team.location}</div>
-        ;
+        `;
         disp.style.background = "var(--accent)";
         // Debounce — wait for user to finish typing before fetching image
         imageFetchTimeout = setTimeout(() => fetchRobotImage(num), 600);
@@ -164,18 +159,17 @@ if (tbaStatus === "loaded") {
     disp.style.color      = "var(--accent)";
     disp.style.background = "rgba(255,255,255,0.05)";
 } else if (tbaStatus === "empty") {
-    disp.textContent      = num ? Team ${num} (TBA list empty) : "TBA has no teams yet";
+    disp.textContent      = num ? `Team ${num} (TBA list empty)` : "TBA has no teams yet";
     disp.style.color      = num ? "#000" : "var(--accent)";
     disp.style.background = num ? "var(--accent)" : "rgba(255,255,255,0.05)";
     if (num) imageFetchTimeout = setTimeout(() => fetchRobotImage(num), 600);
 } else {
-    disp.textContent      = num ? Team ${num} (Offline Mode) : "API Error. Enter any team.";
+    disp.textContent      = num ? `Team ${num} (Offline Mode)` : "API Error. Enter any team.";
     disp.style.color      = num ? "#000" : "var(--danger)";
     disp.style.background = num ? "var(--accent)" : "rgba(255,68,68,0.1)";
 }
 
 updateNavButtons();
-
 
 });
 
@@ -191,14 +185,13 @@ if (el) el.addEventListener('input', updateNavButtons);
 // ── Profanity Check ────────────────────────────────────────────────────────
 function containsProfanity(text) {
 if (!text) return false;
-return BAD_WORDS.some(word => new RegExp(\\b${word}\\b, "i").test(text));
+return BAD_WORDS.some(word => new RegExp(`\\b${word}\\b`, "i").test(text));
 }
 
 // ── Navigation & Validation ────────────────────────────────────────────────
 function updateNavButtons() {
 const nextBtn = document.getElementById('nextBtn');
 let isValid   = true;
-
 
 if (currentPage === 0) {
     const name = document.getElementById('scouterName').value.trim();
@@ -261,7 +254,7 @@ else if (currentPage === 2) {
         document.getElementById('preload').classList.add('violation');
         isValid = false;
     } else if (preload > capacity) {
-        errEl.innerText = Preload > Capacity (${capacity});
+        errEl.innerText = `Preload > Capacity (${capacity})`;
         errEl.style.display = 'block';
         document.getElementById('preload').classList.add('violation');
         isValid = false;
@@ -286,16 +279,14 @@ else if (currentPage === 3) {
 
 nextBtn.disabled = !isValid;
 
-
 }
 
 function navigate(dir) {
 if (dir === 1 && document.getElementById('nextBtn').disabled) return;
 
-
-document.getElementById(page${currentPage}).classList.remove('active');
+document.getElementById(`page${currentPage}`).classList.remove('active');
 currentPage += dir;
-document.getElementById(page${currentPage}).classList.add('active');
+document.getElementById(`page${currentPage}`).classList.add('active');
 
 document.getElementById('backBtn').style.visibility = currentPage === 0 ? 'hidden' : 'visible';
 
@@ -317,13 +308,12 @@ if (currentPage === 4) {
 }
 window.scrollTo(0, 0);
 
-
 }
 
 // ── Multi-checkbox Helper ──────────────────────────────────────────────────
 function getMultiValues(name, otherId = null) {
 const vals = [];
-document.querySelectorAll(input[name="${name}"]:checked).forEach(cb => {
+document.querySelectorAll(`input[name="${name}"]:checked`).forEach(cb => {
 if (otherId && cb.id.includes('Other')) {
 const txt = document.getElementById(otherId).value.trim();
 if (txt) vals.push("Other: " + txt);
@@ -338,20 +328,19 @@ return vals.join(' + ');
 function prepareReview() {
 const t    = document.getElementById('teamNum').value;
 const name = TEAM_LIST[t]?.name ?? "Unknown";
-let html   = <strong>Team ${t} - ${name}</strong><br>;
-html += Event: ${EVENT_KEY}<br>;
-html += Scouter: ${document.getElementById('scouterName').value}<br>;
-html += <hr style="border-color:#333;margin:5px 0;">;
-html += Chassis: ${document.getElementById('chassis').value}<br>;
-html += Auto Intake: ${getMultiValues('autoIntakePos') || 'None'}<br>;
-html += Auto Hang: ${getMultiValues('autoHangPos') || 'None'}<br>;
+let html   = `<strong>Team ${t} - ${name}</strong><br>`;
+html += `Event: ${EVENT_KEY}<br>`;
+html += `Scouter: ${document.getElementById('scouterName').value}<br>`;
+html += `<hr style="border-color:#333;margin:5px 0;">`;
+html += `Chassis: ${document.getElementById('chassis').value}<br>`;
+html += `Auto Intake: ${getMultiValues('autoIntakePos') || 'None'}<br>`;
+html += `Auto Hang: ${getMultiValues('autoHangPos') || 'None'}<br>`;
 document.getElementById('reviewText').innerHTML = html;
 }
 
 // ── Reset ──────────────────────────────────────────────────────────────────
 function resetForm() {
 if (!confirm("Are you sure you want to finish and reset?")) return;
-
 
 document.getElementById('scoutForm').reset();
 document.getElementById('eventSearch').value = '';
@@ -403,7 +392,6 @@ document.body.style.paddingBottom = '100px';
 document.getElementById('teamNum').dispatchEvent(new Event('input'));
 updateNavButtons();
 window.scrollTo(0, 0);
-
 
 }
 
