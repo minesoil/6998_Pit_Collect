@@ -1,6 +1,6 @@
 # Unipards 2026 Pit Scouting App
 
-A mobile-first pit scouting tool for FRC Team 6998.
+A mobile pit collect tool for FRC Team 6998.
 
 ## File Structure
 
@@ -33,3 +33,16 @@ The scripts must load in this order (already set in `index.html`):
 - **Never caches failures** — so every retry is fresh
 - If a cached URL goes stale, it auto-heals and re-fetches
 - If no image is found in 2025/2026, shows "No robot image found on TBA (2025/2026)"
+
+## Auto Path Drawing
+
+- **Line mode** — draw a freehand path across the field map; generates one QR per stroke
+- **Dot mode** — tap anywhere on the map to place a position marker; each dot generates its own QR code
+- Labels on generated QRs: paths show as "Auto Path #N", dots show as "Position Dot"
+- Undo removes the last stroke or dot
+- Clear resets the entire canvas and all path QRs
+
+## Known Issues / Notes
+
+- Template literal strings must use backticks (`` ` ``). If you export/copy JS files through certain editors, backticks can get stripped — this breaks all TBA API calls and QR generation silently
+- CSS custom properties use double hyphens (`--accent`, `--text-main`). An en-dash (`–`) will not work
