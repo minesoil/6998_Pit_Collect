@@ -42,7 +42,7 @@ function checkTurretType() {
 const turretRadios = document.getElementsByName(‘turretType’);
 const degreeSection = document.getElementById(‘degree-section’);
 
-```
+
 let selectedValue = "";
 
 for (const radio of turretRadios) {
@@ -58,7 +58,7 @@ if (selectedValue === "Single" || selectedValue === "Double") {
 } else {
     degreeSection.style.display = "none";
 }
-```
+
 
 }
 
@@ -98,7 +98,7 @@ const val = this.value.toLowerCase().trim();
 eventDropdown.innerHTML = ‘’;
 if (!val) { eventDropdown.style.display = ‘none’; return; }
 
-```
+
 let count = 0;
 for (const key in EVENTS_DATA) {
     if (count > 50) break;
@@ -121,7 +121,7 @@ for (const key in EVENTS_DATA) {
     count++;
 }
 eventDropdown.style.display = count > 0 ? 'block' : 'none';
-```
+
 
 });
 
@@ -134,7 +134,7 @@ document.getElementById(‘teamNum’).addEventListener(‘input’, function() 
 const num       = this.value;
 const disp      = document.getElementById(‘teamNameDisplay’);
 
-```
+
 // Reset image UI and cancel pending fetches
 resetImageUI();                     // defined in tba.js
 clearTimeout(imageFetchTimeout);
@@ -174,7 +174,7 @@ if (tbaStatus === "loaded") {
 }
 
 updateNavButtons();
-```
+
 
 });
 
@@ -198,7 +198,7 @@ function updateNavButtons() {
 const nextBtn = document.getElementById(‘nextBtn’);
 let isValid   = true;
 
-```
+
 if (currentPage === 0) {
     const name = document.getElementById('scouterName').value.trim();
     const team = document.getElementById('teamNum').value.trim();
@@ -284,14 +284,14 @@ else if (currentPage === 3) {
 }
 
 nextBtn.disabled = !isValid;
-```
+
 
 }
 
 function navigate(dir) {
 if (dir === 1 && document.getElementById(‘nextBtn’).disabled) return;
 
-```
+
 document.getElementById(`page${currentPage}`).classList.remove('active');
 currentPage += dir;
 document.getElementById(`page${currentPage}`).classList.add('active');
@@ -315,7 +315,7 @@ if (currentPage === 4) {
     updateNavButtons();
 }
 window.scrollTo(0, 0);
-```
+
 
 }
 
@@ -351,7 +351,7 @@ document.getElementById(‘reviewText’).innerHTML = html;
 function resetForm() {
 if (!confirm(“Are you sure you want to finish and reset?”)) return;
 
-```
+
 document.getElementById('scoutForm').reset();
 document.getElementById('eventSearch').value = '';
 
@@ -402,7 +402,7 @@ document.body.style.paddingBottom = '100px';
 document.getElementById('teamNum').dispatchEvent(new Event('input'));
 updateNavButtons();
 window.scrollTo(0, 0);
-```
+
 
 }
 
