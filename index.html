@@ -1,316 +1,23 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Unipards 2026 Pit Collect</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
 
-<style>
-    :root {
-        --bg-deep: #050505;
-        --bg-card: #141419;
-        --accent: #D4AF37;
-        --accent-dim: #b89b00;
-        --text-main: #ffffff;
-        --text-secondary: #a0a0a0;
-        --danger: #ff4444;
-        --success: #00C851;
-        --input-bg: #1f1f26;
-        --border: rgba(255, 215, 0, 0.2);
-    }
-
-    * { 
-        box-sizing: border-box; 
-        margin: 0; 
-        padding: 0; 
-        font-family: 'Lexend', sans-serif; 
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    body { 
-        background-color: var(--bg-deep); 
-        color: var(--text-main); 
-        padding-bottom: 100px;
-    }
-
-    header {
-        background: linear-gradient(180deg, #1a1a20 0%, var(--bg-deep) 100%);
-        padding: 15px;
-        text-align: center;
-        border-bottom: 2px solid var(--accent);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.7);
-    }
-    header h1 {
-        color: var(--accent);
-        font-weight: 800;
-        letter-spacing: 2px;
-        font-size: 1.2rem;
-        text-transform: uppercase;
-        margin: 0;
-    }
-
-    .header-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-        font-size: 0.7rem;
-    }
-    .header-left { flex: 1; text-align: left; }
-    .header-center { flex: 1; text-align: center; }
-    .header-right { flex: 1; text-align: right; }
-
-    .clock-display {
-        color: var(--text-secondary);
-        letter-spacing: 1px;
-        font-weight: 300;
-    }
-    .fs-btn {
-        font-size: 0.65rem;
-        color: var(--accent);
-        border: 1px solid var(--accent);
-        padding: 3px 6px;
-        border-radius: 6px;
-        font-weight: 600;
-        cursor: pointer;
-        background: transparent;
-        transition: all 0.2s ease;
-        text-transform: uppercase;
-    }
-    .fs-btn:hover { background: var(--accent); color: var(--bg-deep); }
-    .fs-btn:active { transform: scale(0.95); }
-
-    .counter-badge {
-        font-size: 0.7rem;
-        color: var(--accent);
-        border: 1px solid var(--accent);
-        padding: 3px 6px;
-        border-radius: 6px;
-        font-weight: 600;
-    }
-
-    @media (max-width: 600px) {
-        header { padding: 12px; }
-        header h1 { font-size: 1rem; letter-spacing: 1px; }
-        .header-top { font-size: 0.6rem; }
-        .fs-btn { font-size: 0.55rem; padding: 2px 4px; }
-        .counter-badge { font-size: 0.6rem; padding: 2px 4px; }
-    }
-
-    .container { max-width: 650px; margin: 0 auto; padding: 20px; }
-    
-    .page { display: none; animation: fadeIn 0.4s ease; }
-    .page.active { display: block; }
-    
-    @keyframes fadeIn { 
-        from { opacity: 0; transform: translateY(10px); } 
-        to { opacity: 1; transform: translateY(0); } 
-    }
-
-    .section-title {
-        color: var(--text-secondary); font-size: 0.85rem; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 1px; margin: 25px 0 10px 5px;
-        border-left: 3px solid var(--accent); padding-left: 10px;
-    }
-
-    .card {
-        background: var(--bg-card);
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 15px;
-        border: 1px solid var(--border);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        position: relative;
-    }
-
-    label { display: block; font-size: 0.9rem; margin-bottom: 8px; font-weight: 600; color: var(--text-main); }
-    .sub-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px; display: block; }
-
-    input[type="text"], input[type="number"], select, textarea {
-        width: 100%; padding: 14px; background: var(--input-bg);
-        border: 1px solid #333; border-radius: 10px;
-        color: white; font-size: 1rem; outline: none; transition: 0.3s;
-    }
-    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(255, 215, 0, 0.1); }
-    
-    .violation { border-color: var(--danger) !important; background: rgba(255, 68, 68, 0.1) !important; }
-
-    .autocomplete-container { position: relative; }
-    .autocomplete-items {
-        position: absolute;
-        border: 1px solid var(--accent);
-        border-top: none;
-        z-index: 99;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: #1a1a20;
-        max-height: 250px;
-        overflow-y: auto;
-        border-radius: 0 0 10px 10px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.7);
-        display: none;
-    }
-    .autocomplete-item {
-        padding: 12px 15px;
-        cursor: pointer;
-        border-bottom: 1px solid #333;
-        color: var(--text-main);
-        font-size: 0.9rem;
-        line-height: 1.4;
-        transition: background 0.1s;
-    }
-    .autocomplete-item:last-child { border-bottom: none; }
-    .autocomplete-item:hover { background-color: var(--accent); color: #000; }
-    .autocomplete-item-title { font-weight: bold; }
-    .autocomplete-item-sub { font-size: 0.75rem; opacity: 0.8; }
-
-    .grid-select { 
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
-        gap: 12px; 
-        margin-top: 10px; 
-    }
-    
-    .toggle-btn {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        padding: 15px 10px;
-        border-radius: 12px;
-        cursor: pointer;
-        text-align: center;
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        position: relative;
-        overflow: hidden;
-        color: var(--text-secondary);
-    }
-    .toggle-btn input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
-    .toggle-btn:has(input:checked) {
-        background: rgba(255, 215, 0, 0.15);
-        border-color: var(--accent);
-        color: var(--accent);
-        box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
-    }
-
-    .nav-bar {
-        position: fixed; bottom: 0; left: 0; width: 100%;
-        background: rgba(10, 10, 10, 0.95);
-        backdrop-filter: blur(10px);
-        padding: 15px 20px;
-        display: flex; gap: 15px;
-        border-top: 1px solid #333;
-        z-index: 1000;
-    }
-    .btn {
-        flex: 1; padding: 16px; border: none; border-radius: 12px;
-        font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
-        cursor: pointer; transition: transform 0.1s;
-    }
-    .btn:active { transform: scale(0.98); }
-    .btn-back { background: #2a2a2a; color: #fff; }
-    .btn-next { background: var(--accent); color: #000; }
-    .btn-next:disabled { background: #444; color: #888; opacity: 0.7; cursor: not-allowed; box-shadow: none; }
-
-    #fieldContainer {
-        position: relative;
-        width: 100%;
-        padding-bottom: 50%;
-        background: #2a2a2a;
-        border-radius: 12px;
-        border: 2px solid var(--accent);
-        overflow: hidden;
-        margin-bottom: 15px;
-        touch-action: none;
-    }
-    #fieldCanvas {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        cursor: crosshair;
-        background-color: #333; 
-        background-image: url('field_2026.png'); 
-        background-size: cover;
-        background-position: center;
-        touch-action: none;
-    }
-    .drawing-controls { display: flex; gap: 10px; margin-bottom: 10px; }
-
-    .team-display { 
-        margin-top: 10px; 
-        font-size: 0.9rem; 
-        font-weight: bold; 
-        color: var(--accent); 
-        display: block; 
-        width: 100%;
-        padding: 12px 15px; 
-        background: rgba(255,215,0,0.1); 
-        border-radius: 8px; 
-        transition: all 0.3s ease;
-        text-align: center;
-    }
-    .error-msg { color: var(--danger); font-size: 0.75rem; font-weight: bold; margin-top: 5px; display: none; }
-    #qrcode, #qrcodePath { background: white; padding: 15px; border-radius: 10px; margin: 20px auto; width: fit-content; display: none; }
-    
-    .profanity-alert {
-        background: rgba(255, 68, 68, 0.2);
-        border: 1px solid var(--danger);
-        color: #ffcccc;
-        padding: 10px;
-        border-radius: 8px;
-        font-size: 0.8rem;
-        margin-top: 10px;
-        display: none;
-        font-weight: bold;
-        text-align: center;
-    }
-
-    .conditional-input { margin-top: 15px; display: none; animation: fadeIn 0.3s ease; }
-    
-    /* Robot image container */
-    #robotImageContainer {
-        margin-top: 15px;
-        display: none;
-        text-align: center;
-    }
-    #robotImage {
-        max-width: 100%;
-        max-height: 250px;
-        border-radius: 8px;
-        border: 2px solid var(--accent);
-        object-fit: contain;
-    }
-    #imageStatus {
-        margin-top: 10px;
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        background: rgba(255,255,255,0.05);
-        padding: 6px 10px;
-        border-radius: 6px;
-        text-align: center;
-        display: none;
-    }
-    #imageLoadingSpinner {
-        display: none;
-        margin-top: 10px;
-        text-align: center;
-        color: var(--accent);
-        font-size: 0.8rem;
-    }
-</style>
-
+    <!-- App Styles -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+<!-- ═══════════════════════════════════════
+     HEADER
+═══════════════════════════════════════ -->
 <header>
     <div class="header-top">
         <div class="header-left">
@@ -326,16 +33,19 @@
     <h1>Unipards 2026 Pit Collect</h1>
 </header>
 
+<!-- ═══════════════════════════════════════
+     FORM PAGES
+═══════════════════════════════════════ -->
 <div class="container">
-    <form id="scoutForm">
-        
-    <!-- STEP 1: Identification -->
+<form id="scoutForm">
+
+    <!-- ── STEP 1: Identification ── -->
     <div class="page active" id="page0">
         <div class="section-title">Step 1: Identification</div>
-        
-        <div class="card" style="z-index: 10;">
+
+        <div class="card" style="z-index:10;">
             <label>Event Selection (選擇賽事)</label>
-            <div id="eventStatusDisplay" class="team-display" style="margin-top: 0; margin-bottom: 12px;">Loading events...</div>
+            <div id="eventStatusDisplay" class="team-display" style="margin-top:0;margin-bottom:12px;">Loading events...</div>
             <div class="autocomplete-container">
                 <input type="text" id="eventSearch" placeholder="🔍 Search by name, key, or city..." autocomplete="off">
                 <div id="eventDropdown" class="autocomplete-items"></div>
@@ -360,19 +70,19 @@
             <label>Team Number (隊伍編號)</label>
             <input type="number" id="teamNum" placeholder="e.g. 6998">
             <div id="teamNameDisplay" class="team-display">Waiting for event selection...</div>
-            
-            <!-- Robot image display -->
+
+            <!-- Robot image -->
             <div id="robotImageContainer">
                 <img id="robotImage" alt="Robot Image" crossorigin="anonymous">
             </div>
             <div id="imageLoadingSpinner">⏳ Searching for robot image...</div>
-            <div id="imageStatus">No robot image found on TBA</div>
-            
+            <div id="imageStatus">No robot image found on TBA (2025/2026)</div>
+
             <div class="error-msg" id="err-team">Not in Official TBA Roster</div>
         </div>
     </div>
 
-    <!-- STEP 2: Robot Specifications -->
+    <!-- ── STEP 2: Robot Specifications ── -->
     <div class="page" id="page1">
         <div class="section-title">Step 2: Robot Specifications</div>
 
@@ -384,45 +94,34 @@
                 <option value="Mecanum">Mecanum</option>
                 <option value="Other">Other</option>
             </select>
-            
+
             <br><br>
             <label>Robot Weight (機器人重量)</label>
             <span class="sub-label">Select lbs or kg</span>
-            <div style="display: flex; gap: 10px;">
-                <input type="number" id="weight" placeholder="125" style="flex: 1;">
-                <select id="weightUnit" style="width: 80px;" onchange="updateNavButtons()">
+            <div style="display:flex;gap:10px;">
+                <input type="number" id="weight" placeholder="125" style="flex:1;">
+                <select id="weightUnit" style="width:80px;" onchange="updateNavButtons()">
                     <option value="lbs">lbs</option>
                     <option value="kg">kg</option>
                 </select>
             </div>
             <div class="error-msg" id="err-weight">Max Weight is 135 lbs (61.2 kg)</div>
-            
+
             <br><br>
             <label>Max Fuel Capacity (最高容量)</label>
             <input type="number" id="capacity" placeholder="e.g. 1">
         </div>
 
+        <!-- ── STEP 3: Systems ── -->
         <div class="section-title">Step 3: Systems</div>
 
         <div class="card">
             <label>Intake Mechanism (Intake)</label>
             <div class="grid-select">
-                <label class="toggle-btn">
-                    <input type="checkbox" name="intake" value="OverBumper">
-                    Over Bumper (跨越保險桿)
-                </label>
-                <label class="toggle-btn">
-                    <input type="checkbox" name="intake" value="UnderBumper">
-                    Under Bumper (穿過保險桿)
-                </label>
-                <label class="toggle-btn">
-                    <input type="checkbox" name="intake" value="Roller">
-                    Roller (滾輪)
-                </label>
-                <label class="toggle-btn">
-                    <input type="checkbox" name="intake" id="intakeOtherTrigger">
-                    Other (其他)
-                </label>
+                <label class="toggle-btn"><input type="checkbox" name="intake" value="OverBumper">Over Bumper (跨越保險桿)</label>
+                <label class="toggle-btn"><input type="checkbox" name="intake" value="UnderBumper">Under Bumper (穿過保險桿)</label>
+                <label class="toggle-btn"><input type="checkbox" name="intake" value="Roller">Roller (滾輪)</label>
+                <label class="toggle-btn"><input type="checkbox" name="intake" id="intakeOtherTrigger">Other (其他)</label>
             </div>
             <div class="conditional-input" id="intakeOtherBox">
                 <input type="text" id="intakeOtherVal" placeholder="Describe intake type...">
@@ -432,18 +131,9 @@
         <div class="card">
             <label>Vision Hardware (視覺硬體)</label>
             <div class="grid-select">
-                <label class="toggle-btn">
-                    <input type="checkbox" name="visionHard" value="Limelight">
-                    Limelight
-                </label>
-                <label class="toggle-btn">
-                    <input type="checkbox" name="visionHard" value="NormalCamera">
-                    Normal Camera
-                </label>
-                 <label class="toggle-btn">
-                    <input type="checkbox" name="visionHard" id="visOtherTrigger">
-                    Other (其他)
-                </label>
+                <label class="toggle-btn"><input type="checkbox" name="visionHard" value="Limelight">Limelight</label>
+                <label class="toggle-btn"><input type="checkbox" name="visionHard" value="NormalCamera">Normal Camera</label>
+                <label class="toggle-btn"><input type="checkbox" name="visionHard" id="visOtherTrigger">Other (其他)</label>
             </div>
             <div class="conditional-input" id="visOtherBox">
                 <input type="text" id="visOtherVal" placeholder="Describe camera/vision...">
@@ -452,19 +142,10 @@
 
         <div class="card">
             <label>Vision Capabilities (相機功能)</label>
-             <div class="grid-select">
-                <label class="toggle-btn">
-                    <input type="checkbox" name="visionSoft" value="ObjDetect">
-                    Object Detection
-                </label>
-                <label class="toggle-btn">
-                    <input type="checkbox" name="visionSoft" value="AprilTag">
-                    AprilTag
-                </label>
-                 <label class="toggle-btn">
-                    <input type="checkbox" name="visionSoft" id="visSoftOtherTrigger">
-                    Other (其他)
-                </label>
+            <div class="grid-select">
+                <label class="toggle-btn"><input type="checkbox" name="visionSoft" value="ObjDetect">Object Detection</label>
+                <label class="toggle-btn"><input type="checkbox" name="visionSoft" value="AprilTag">AprilTag</label>
+                <label class="toggle-btn"><input type="checkbox" name="visionSoft" id="visSoftOtherTrigger">Other (其他)</label>
             </div>
             <div class="conditional-input" id="visSoftOtherBox">
                 <input type="text" id="visSoftOtherVal" placeholder="Describe vision capabilities...">
@@ -474,22 +155,10 @@
         <div class="card">
             <label>Shooting Capabilities (射球能力)</label>
             <div class="grid-select">
-                <label class="toggle-btn">
-                    <input type="checkbox" name="shoot" value="Stationary">
-                    定點射擊<br><span style="font-size:0.7em">(Stationary)</span>
-                </label>
-                <label class="toggle-btn">
-                    <input type="checkbox" name="shoot" value="MoveShoot">
-                    邊走邊射<br><span style="font-size:0.7em">(Move & Shoot)</span>
-                </label>
-                <label class="toggle-btn">
-                    <input type="checkbox" name="shoot" value="IntakeShoot">
-                    邊吸邊射<br><span style="font-size:0.7em">(Intake & Shoot)</span>
-                </label>
-                <label class="toggle-btn">
-                    <input type="checkbox" name="shoot" value="Pass">
-                    傳球<br><span style="font-size:0.7em">(Passing)</span>
-                </label>
+                <label class="toggle-btn"><input type="checkbox" name="shoot" value="Stationary">定點射擊<br><span style="font-size:0.7em">(Stationary)</span></label>
+                <label class="toggle-btn"><input type="checkbox" name="shoot" value="MoveShoot">邊走邊射<br><span style="font-size:0.7em">(Move & Shoot)</span></label>
+                <label class="toggle-btn"><input type="checkbox" name="shoot" value="IntakeShoot">邊吸邊射<br><span style="font-size:0.7em">(Intake & Shoot)</span></label>
+                <label class="toggle-btn"><input type="checkbox" name="shoot" value="Pass">傳球<br><span style="font-size:0.7em">(Passing)</span></label>
             </div>
         </div>
 
@@ -497,18 +166,11 @@
             <label>Turrets (砲台)</label>
             <span class="sub-label">Turret Count (砲台數量)</span>
             <input type="number" id="turretCount" placeholder="e.g. 1" min="0">
-
-            <div style="margin-top: 15px;">
+            <div style="margin-top:15px;">
                 <span class="sub-label">Turret Features & Freedom (自由度)</span>
                 <div class="grid-select">
-                    <label class="toggle-btn">
-                        <input type="checkbox" name="turret" value="Yaw" id="yawTrigger">
-                        Yaw (Horizontal)
-                    </label>
-                    <label class="toggle-btn">
-                        <input type="checkbox" name="turret" value="Pitch" id="pitchTrigger">
-                        Pitch (Vertical)
-                    </label>
+                    <label class="toggle-btn"><input type="checkbox" name="turret" value="Yaw" id="yawTrigger">Yaw (Horizontal)</label>
+                    <label class="toggle-btn"><input type="checkbox" name="turret" value="Pitch" id="pitchTrigger">Pitch (Vertical)</label>
                 </div>
                 <div class="conditional-input" id="yawFreedomBox">
                     <input type="text" id="yawFreedomVal" placeholder="Yaw Freedom (e.g., 180°, 360°)...">
@@ -520,21 +182,17 @@
         </div>
     </div>
 
-    <!-- STEP 4: Autonomous -->
+    <!-- ── STEP 4: Autonomous ── -->
     <div class="page" id="page2">
         <div class="section-title">Step 4: Autonomous</div>
 
         <div class="card">
             <label>Starting Location (位子)</label>
             <div class="grid-select">
-                <label class="toggle-btn">
-                    <input type="checkbox" name="startPos" value="Left">Left (左)</label>
-                <label class="toggle-btn">
-                    <input type="checkbox" name="startPos" value="Center">Center (中)</label>
-                <label class="toggle-btn">
-                    <input type="checkbox" name="startPos" value="Right">Right (右)</label>
+                <label class="toggle-btn"><input type="checkbox" name="startPos" value="Left">Left (左)</label>
+                <label class="toggle-btn"><input type="checkbox" name="startPos" value="Center">Center (中)</label>
+                <label class="toggle-btn"><input type="checkbox" name="startPos" value="Right">Right (右)</label>
             </div>
-
             <br><br>
             <label>Preload Count (Preload 數量)</label>
             <span class="sub-label">Maximum 8</span>
@@ -542,7 +200,7 @@
             <div class="error-msg" id="err-preload">Max Preload is 8</div>
         </div>
 
-         <div class="card">
+        <div class="card">
             <label>Auto Intake Source (自動吸球來源)</label>
             <div class="grid-select">
                 <label class="toggle-btn"><input type="checkbox" name="autoIntakePos" value="Ground">Ground</label>
@@ -553,7 +211,7 @@
 
         <div class="card">
             <label>Auto Hang Location (自動掛 L1 位置)</label>
-            <div class="grid-select" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="grid-select" style="grid-template-columns:repeat(3,1fr);">
                 <label class="toggle-btn"><input type="checkbox" name="autoHangPos" value="Left">Left<br>左</label>
                 <label class="toggle-btn"><input type="checkbox" name="autoHangPos" value="Center">Center<br>中</label>
                 <label class="toggle-btn"><input type="checkbox" name="autoHangPos" value="Right">Right<br>右</label>
@@ -577,16 +235,16 @@
             </label>
         </div>
 
-        <div class="card" id="terrainCard">
+        <div class="card">
             <label>Terrain Navigation (地形)</label>
             <div class="grid-select">
-                <label class="toggle-btn"><input type="checkbox" name="terrain" value="Bump" id="terrainBump">Bump</label>
+                <label class="toggle-btn"><input type="checkbox" name="terrain" value="Bump">Bump</label>
                 <label class="toggle-btn"><input type="checkbox" name="terrain" value="Trench">Trench</label>
             </div>
         </div>
     </div>
 
-    <!-- STEP 5: Teleop & Endgame -->
+    <!-- ── STEP 5: Teleop & Endgame ── -->
     <div class="page" id="page3">
         <div class="section-title">Step 5: Teleop & Endgame</div>
 
@@ -601,14 +259,14 @@
 
         <div class="card">
             <label>Climb Position (吊掛位子)</label>
-            <div class="grid-select" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="grid-select" style="grid-template-columns:repeat(3,1fr);">
                 <label class="toggle-btn"><input type="checkbox" name="climbPos" value="Left">Left<br>左</label>
                 <label class="toggle-btn"><input type="checkbox" name="climbPos" value="Center">Center<br>中</label>
                 <label class="toggle-btn"><input type="checkbox" name="climbPos" value="Right">Right<br>右</label>
             </div>
             <div class="grid-select" style="margin-top:10px;">
                 <label class="toggle-btn"><input type="checkbox" name="climbPos" value="FarLeft">Far Left Side (左側)</label>
-                <label class="toggle-btn"><input type="checkbox" name="autoHangPos" value="FarRight">Far Right Side (右側)</label>
+                <label class="toggle-btn"><input type="checkbox" name="climbPos" value="FarRight">Far Right Side (右側)</label>
             </div>
         </div>
 
@@ -619,8 +277,8 @@
         </div>
 
         <div class="card">
-            <label style="display:flex; align-items:center; gap:10px;">
-                <input type="checkbox" id="photosTaken" style="width:25px; height:25px; accent-color:var(--accent);">
+            <label style="display:flex;align-items:center;gap:10px;">
+                <input type="checkbox" id="photosTaken" style="width:25px;height:25px;accent-color:var(--accent);">
                 <span>Photos Taken? (照片全部已拍)</span>
             </label>
         </div>
@@ -632,965 +290,93 @@
         </div>
     </div>
 
-    <!-- STEP 6: Review & Sync -->
+    <!-- ── STEP 6: Review & Sync ── -->
     <div class="page" id="page4">
         <div class="section-title">Step 6: Review & Sync</div>
         <div class="card" style="text-align:center;">
-            <h2 style="color:var(--accent); margin-bottom:10px;">Ready to Generate</h2>
-            <div id="reviewText" style="text-align:left; background:#000; padding:15px; border-radius:10px; margin-bottom:20px; font-size:0.9rem; line-height:1.6; color:#ccc;"></div>
+            <h2 style="color:var(--accent);margin-bottom:10px;">Ready to Generate</h2>
+            <div id="reviewText" style="text-align:left;background:#000;padding:15px;border-radius:10px;margin-bottom:20px;font-size:0.9rem;line-height:1.6;color:#ccc;"></div>
 
-            <div id="qrHeader" style="display:none; margin-bottom:15px;">
-                <div style="color:var(--text-secondary); font-size:0.9rem; text-transform:uppercase; letter-spacing:1px;">Scouting Team</div>
-                <div id="qrTeamText" style="color:var(--accent); font-size:2.5rem; font-weight:800; line-height:1.2;"></div>
-                <div id="qrTeamName" style="color:white; font-size:1.2rem; margin-top:5px;"></div>
+            <div id="qrHeader" style="display:none;margin-bottom:15px;">
+                <div style="color:var(--text-secondary);font-size:0.9rem;text-transform:uppercase;letter-spacing:1px;">Scouting Team</div>
+                <div id="qrTeamText" style="color:var(--accent);font-size:2.5rem;font-weight:800;line-height:1.2;"></div>
+                <div id="qrTeamName" style="color:white;font-size:1.2rem;margin-top:5px;"></div>
             </div>
 
             <div id="qrcode"></div>
-            
+
             <button type="button" class="btn btn-next" id="generateBtn" onclick="generateQR()">Generate Data QR</button>
             <br><br>
-            <button type="button" class="btn btn-next" id="goToPathBtn" onclick="navigate(1)" style="display:none; background: #2a2a2a; border: 1px solid var(--accent); color: var(--accent);">Next: Draw Auto Path</button>
-            
+            <button type="button" class="btn btn-next" id="goToPathBtn" onclick="navigate(1)"
+                style="display:none;background:#2a2a2a;border:1px solid var(--accent);color:var(--accent);">
+                Next: Draw Auto Path
+            </button>
             <br><br>
-            <button type="button" class="btn" style="background:var(--danger); color:white; font-size:0.8rem; padding:10px;" onclick="resetForm()">Reset Form</button>
+            <button type="button" class="btn" style="background:var(--danger);color:white;font-size:0.8rem;padding:10px;" onclick="resetForm()">Reset Form</button>
         </div>
     </div>
 
-    <!-- STEP 7: Auto Path Drawing -->
+    <!-- ── STEP 7: Auto Path Drawing ── -->
     <div class="page" id="page5">
         <div class="section-title">Step 7: Draw Auto Path</div>
         <div class="card" style="text-align:center;">
-            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">
+            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:15px;">
                 Draw the robot's autonomous path or tap a dot for teams with no auto<br>
-                <span style="font-size: 0.8rem; color: var(--accent);">Map: FRC 2026 Rebuilt Field</span>
+                <span style="font-size:0.8rem;color:var(--accent);">Map: FRC 2026 Rebuilt Field</span>
             </p>
 
-            <div id="drawingModeIndicator" style="background:rgba(212, 175, 55, 0.1); border:1px solid var(--accent); padding:8px; border-radius:8px; margin-bottom:15px; color:var(--accent); font-size:0.85rem; font-weight:600;">
+            <div id="drawingModeIndicator" style="background:rgba(212,175,55,0.1);border:1px solid var(--accent);padding:8px;border-radius:8px;margin-bottom:15px;color:var(--accent);font-size:0.85rem;font-weight:600;">
                 Mode: <span id="modeText">Drawing Line</span>
             </div>
 
-            <div class="drawing-controls" style="justify-content: center; flex-wrap: wrap;">
-                <button type="button" class="btn" style="background: #333; color: white; padding: 10px; flex: 0 1 auto;" onclick="toggleDrawMode()">
+            <div class="drawing-controls" style="justify-content:center;flex-wrap:wrap;">
+                <button type="button" class="btn" style="background:#333;color:white;padding:10px;flex:0 1 auto;" onclick="toggleDrawMode()">
                     <span id="toggleModeBtn">📍 Switch to Dot</span>
                 </button>
-                <button type="button" class="btn" style="background: #333; color: white; padding: 10px; flex: 0 1 auto;" onclick="clearCanvas()">Clear</button>
-                <button type="button" class="btn" style="background: #333; color: white; padding: 10px; flex: 0 1 auto;" onclick="undoLastStroke()">Undo</button>
+                <button type="button" class="btn" style="background:#333;color:white;padding:10px;flex:0 1 auto;" onclick="clearCanvas()">Clear</button>
+                <button type="button" class="btn" style="background:#333;color:white;padding:10px;flex:0 1 auto;" onclick="undoLastStroke()">Undo</button>
             </div>
 
             <div id="fieldContainer">
                 <canvas id="fieldCanvas"></canvas>
             </div>
 
-            <div id="pathQrHeader" style="display:none; margin-bottom:15px; border-top: 1px solid #333; padding-top:15px;">
-                <div style="color:var(--text-secondary); font-size:0.9rem; text-transform:uppercase; letter-spacing:1px;">Auto Paths For</div>
-                <div id="pathQrTeamText" style="color:var(--accent); font-size:2rem; font-weight:800;"></div>
+            <div id="pathQrHeader" style="display:none;margin-bottom:15px;border-top:1px solid #333;padding-top:15px;">
+                <div style="color:var(--text-secondary);font-size:0.9rem;text-transform:uppercase;letter-spacing:1px;">Auto Paths For</div>
+                <div id="pathQrTeamText" style="color:var(--accent);font-size:2rem;font-weight:800;"></div>
             </div>
 
             <div id="qrcodePath"></div>
 
             <button type="button" class="btn btn-next" id="generatePathBtn" onclick="generatePathQR()">Generate Path QRs</button>
             <br><br>
-            <button type="button" class="btn" style="background:var(--danger); color:white; font-size:0.8rem; padding:10px;" onclick="resetForm()">Finish & Reset</button>
+            <button type="button" class="btn" style="background:var(--danger);color:white;font-size:0.8rem;padding:10px;" onclick="resetForm()">Finish & Reset</button>
         </div>
     </div>
 
 </form>
-
 </div>
 
+<!-- ═══════════════════════════════════════
+     NAV BAR
+═══════════════════════════════════════ -->
 <div class="nav-bar">
     <button type="button" class="btn btn-back" id="backBtn" onclick="navigate(-1)">Back</button>
     <button type="button" class="btn btn-next" id="nextBtn" onclick="navigate(1)">Next</button>
 </div>
 
-<script>
-    /* =========================================
-       TBA API INTEGRATION
-    ========================================= */
-    const TBA_API_KEY = "86liJtIJ8jdGYlNIhrV8fAI1QjA3xY5fCy4friXBmvCdJLFy9vvZiHBnZaf0Op7v";
-    
-    let EVENT_KEY = localStorage.getItem('TBA_LAST_EVENT') || "2026cmptx"; 
-    let EVENTS_DATA = {};
-    let TEAM_LIST = {};
-    // Image cache: stores { url: "...", year: 2025 } or "none"
-    let TEAM_IMAGES = JSON.parse(localStorage.getItem('TBA_IMAGES_2026_V4') || '{}');
-    let tbaStatus = "loading"; 
-    let imageFetchTimeout;
-    let currentImageFetchController = null; // Allows cancelling in-flight requests
-
-    async function fetchWithTimeout(url, options = {}, timeoutMs = 6000) {
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), timeoutMs);
-        try {
-            const response = await fetch(url, { ...options, signal: controller.signal });
-            clearTimeout(id);
-            return response;
-        } catch (err) {
-            clearTimeout(id);
-            throw err;
-        }
-    }
-
-    /* =========================================
-       ROBOT IMAGE FETCH — FIXED VERSION
-       Strategy:
-       1. Check local memory cache first (instant)
-       2. Try TBA avatar CDN (fast, always works, no CORS)
-       3. Try TBA media API for real robot photo (years 2026→2018)
-       4. Fall back to "no image" state
-    ========================================= */
-    async function fetchRobotImage(teamNum) {
-        const imgEl     = document.getElementById('robotImage');
-        const container = document.getElementById('robotImageContainer');
-        const statusEl  = document.getElementById('imageStatus');
-        const spinnerEl = document.getElementById('imageLoadingSpinner');
-
-        imgEl.style.display     = 'none';
-        container.style.display = 'none';
-        statusEl.style.display  = 'none';
-        spinnerEl.style.display = 'none';
-        imgEl.src = '';
-
-        if (currentImageFetchController) currentImageFetchController.abort();
-        currentImageFetchController = new AbortController();
-        const signal = currentImageFetchController.signal;
-
-        // Only trust cached URLs that are real — never trust a cached 'none'
-        const cached = TEAM_IMAGES[teamNum];
-        if (cached && cached !== 'none') {
-            tryLoadImage(imgEl, container, statusEl, cached, teamNum);
-            return;
-        }
-
-        spinnerEl.style.display = 'block';
-
-        try {
-            const yearsToCheck = [2026, 2025];
-            const mediaRequests = yearsToCheck.map(year =>
-                fetch(
-                    `https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/${year}`,
-                    { headers: { 'X-TBA-Auth-Key': TBA_API_KEY }, signal }
-                )
-                .then(r => r.ok ? r.json() : [])
-                .catch(() => [])
-            );
-
-            const allResults = await Promise.all(mediaRequests);
-            let candidateUrls = [];
-
-            for (let i = 0; i < allResults.length; i++) {
-                const mediaArr = allResults[i];
-                if (!Array.isArray(mediaArr) || mediaArr.length === 0) continue;
-                for (const item of mediaArr) {
-                    if (item.type === 'imgur' && item.view_url) {
-                        candidateUrls.push(item.view_url);
-                    }
-                    if (item.direct_url && /\.(jpe?g|png|gif|webp)/i.test(item.direct_url)) {
-                        candidateUrls.push(item.direct_url);
-                    }
-                }
-                if (candidateUrls.length >= 3) break;
-            }
-            // No avatar fallback — if no 2025/2026 media found, show "no image"
-
-            spinnerEl.style.display = 'none';
-            if (signal.aborted) return;
-
-            // Walk the candidate list — try each URL until one actually loads in the browser
-            tryNextCandidate(imgEl, container, statusEl, candidateUrls, 0, teamNum);
-
-        } catch (err) {
-            spinnerEl.style.display = 'none';
-            if (err.name !== 'AbortError') {
-                console.warn('Image fetch error for team', teamNum, err);
-                statusEl.style.display = 'block';
-            }
-        }
-    }
-
-    // Walk through candidate URLs one by one; only cache + show when one succeeds
-    function tryNextCandidate(imgEl, container, statusEl, urls, index, teamNum) {
-        if (index >= urls.length) {
-            // All candidates exhausted — show status but DO NOT cache 'none'
-            // so we retry fresh next time
-            statusEl.style.display = 'block';
-            return;
-        }
-        const url = urls[index];
-        const testImg = new Image();
-        testImg.onload = function() {
-            // Confirmed loadable — cache and display
-            TEAM_IMAGES[teamNum] = url;
-            localStorage.setItem('TBA_IMAGES_2026_V4', JSON.stringify(TEAM_IMAGES));
-            imgEl.src = url;
-            imgEl.style.display = 'block';
-            container.style.display = 'block';
-            statusEl.style.display = 'none';
-        };
-        testImg.onerror = function() {
-            // This URL failed — move to next candidate silently
-            tryNextCandidate(imgEl, container, statusEl, urls, index + 1, teamNum);
-        };
-        testImg.src = url;
-    }
-
-    // Used when loading a previously cached URL — auto-heals if it has gone stale
-    function tryLoadImage(imgEl, container, statusEl, url, teamNum) {
-        const testImg = new Image();
-        testImg.onload = function() {
-            imgEl.src = url;
-            imgEl.style.display = 'block';
-            container.style.display = 'block';
-            statusEl.style.display = 'none';
-        };
-        testImg.onerror = function() {
-            // Cached URL is now broken — delete and fetch fresh
-            delete TEAM_IMAGES[teamNum];
-            localStorage.setItem('TBA_IMAGES_2026_V4', JSON.stringify(TEAM_IMAGES));
-            fetchRobotImage(teamNum);
-        };
-        testImg.src = url;
-    }
-
-    /* =========================================
-       EVENT FETCHING & AUTOCOMPLETE
-    ========================================= */
-    async function fetchEvents() {
-        const disp = document.getElementById('eventStatusDisplay');
-        const cachedEvents = localStorage.getItem('TBA_EVENTS_2026_V1');
-        
-        if (cachedEvents) {
-            try { EVENTS_DATA = JSON.parse(cachedEvents); } catch(e){}
-            updateEventStatusDisplay();
-        }
-
-        try {
-            if(Object.keys(EVENTS_DATA).length === 0) disp.textContent = "Fetching Event List from TBA...";
-            const res = await fetchWithTimeout(`https://www.thebluealliance.com/api/v3/events/2026/simple`, {
-                headers: { 'X-TBA-Auth-Key': TBA_API_KEY }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                EVENTS_DATA = {};
-                data.forEach(e => { EVENTS_DATA[e.key] = e; });
-                localStorage.setItem('TBA_EVENTS_2026_V1', JSON.stringify(EVENTS_DATA));
-                updateEventStatusDisplay();
-            }
-        } catch (err) {
-            console.warn("Could not fetch events:", err);
-            if (Object.keys(EVENTS_DATA).length === 0) {
-                disp.textContent = "Offline Mode (Search disabled)";
-                disp.style.color = "var(--text-secondary)";
-            }
-        }
-    }
-
-    const eventSearchInput = document.getElementById('eventSearch');
-    const eventDropdown = document.getElementById('eventDropdown');
-
-    eventSearchInput.addEventListener('input', function() {
-        const val = this.value.toLowerCase().trim();
-        eventDropdown.innerHTML = '';
-        if (!val) { eventDropdown.style.display = 'none'; return; }
-        
-        let count = 0;
-        for (const key in EVENTS_DATA) {
-            const ev = EVENTS_DATA[key];
-            const searchableText = `${ev.key} ${ev.name} ${ev.city || ''}`.toLowerCase();
-            if (searchableText.includes(val)) {
-                if(count > 50) break;
-                const div = document.createElement('div');
-                div.className = 'autocomplete-item';
-                div.innerHTML = `
-                    <div class="autocomplete-item-title">${ev.name}</div>
-                    <div class="autocomplete-item-sub">${ev.key} • ${ev.city || 'Location Unknown'}</div>
-                `;
-                div.addEventListener('click', function() {
-                    selectEvent(ev.key);
-                    eventSearchInput.value = ''; 
-                    eventDropdown.style.display = 'none';
-                });
-                eventDropdown.appendChild(div);
-                count++;
-            }
-        }
-        eventDropdown.style.display = count > 0 ? 'block' : 'none';
-    });
-
-    document.addEventListener('click', function (e) {
-        if (e.target !== eventSearchInput) eventDropdown.style.display = 'none';
-    });
-
-    function selectEvent(key) {
-        if (key !== EVENT_KEY) {
-            EVENT_KEY = key;
-            localStorage.setItem('TBA_LAST_EVENT', EVENT_KEY);
-            updateEventStatusDisplay();
-            TEAM_LIST = {}; 
-            document.getElementById('teamNameDisplay').innerHTML = "Switching events...";
-            document.getElementById('teamNameDisplay').style.background = "rgba(255,255,255,0.05)";
-            document.getElementById('robotImageContainer').style.display = 'none';
-            document.getElementById('robotImage').style.display = 'none';
-            document.getElementById('imageStatus').style.display = 'none';
-            initTBA();
-        }
-    }
-
-    function updateEventStatusDisplay() {
-        const disp = document.getElementById('eventStatusDisplay');
-        if (EVENTS_DATA[EVENT_KEY]) {
-            disp.textContent = `✓ Selected: ${EVENTS_DATA[EVENT_KEY].name} (${EVENT_KEY})`;
-            disp.style.color = "#000";
-            disp.style.background = "var(--accent)";
-            disp.style.borderRadius = "8px";
-        } else {
-            disp.textContent = `Selected: ${EVENT_KEY}`;
-            disp.style.color = "var(--text-main)";
-            disp.style.background = "rgba(255,255,255,0.05)";
-        }
-    }
-
-    /* =========================================
-       TEAM LIST FETCHING
-    ========================================= */
-    async function initTBA() {
-        tbaStatus = "loading";
-        const disp = document.getElementById('teamNameDisplay');
-        const cacheKey = 'TBA_TEAM_LIST_' + EVENT_KEY + '_V3';
-        const cachedTeams = localStorage.getItem(cacheKey);
-        
-        if (cachedTeams) {
-            try {
-                TEAM_LIST = JSON.parse(cachedTeams);
-                tbaStatus = "loaded";
-            } catch(e) { TEAM_LIST = {}; }
-        }
-        
-        if (tbaStatus === "loading") {
-            disp.textContent = "Fetching TBA Teams...";
-            disp.style.color = "var(--accent)";
-        }
-        
-        try {
-            let allTeams = [];
-            const response = await fetchWithTimeout(`https://www.thebluealliance.com/api/v3/event/${EVENT_KEY}/teams/simple`, {
-                headers: { 'X-TBA-Auth-Key': TBA_API_KEY }
-            });
-            
-            if (!response.ok) throw new Error(`TBA API Error: ${response.status}`);
-            const teams = await response.json();
-            
-            if (teams.length === 0) {
-                const eventRes = await fetchWithTimeout(`https://www.thebluealliance.com/api/v3/event/${EVENT_KEY}`, {
-                    headers: { 'X-TBA-Auth-Key': TBA_API_KEY }
-                });
-                if (eventRes.ok) {
-                    const eventData = await eventRes.json();
-                    if (eventData.division_keys && eventData.division_keys.length > 0) {
-                        const divPromises = eventData.division_keys.map(divKey => 
-                            fetchWithTimeout(`https://www.thebluealliance.com/api/v3/event/${divKey}/teams/simple`, {
-                                headers: { 'X-TBA-Auth-Key': TBA_API_KEY }
-                            }).then(res => res.ok ? res.json() : [])
-                        );
-                        const divisionsData = await Promise.all(divPromises);
-                        divisionsData.forEach(divTeams => { allTeams = allTeams.concat(divTeams); });
-                    }
-                }
-            } else {
-                allTeams = teams;
-            }
-            
-            if (allTeams.length > 0) {
-                TEAM_LIST = {};
-                allTeams.forEach(t => { 
-                    const locationArray = [t.city, t.state_prov, t.country].filter(item => item && item.trim() !== "");
-                    TEAM_LIST[t.team_number] = {
-                        name: t.nickname,
-                        location: locationArray.length > 0 ? locationArray.join(', ') : "Location Unknown"
-                    }; 
-                });
-                localStorage.setItem(cacheKey, JSON.stringify(TEAM_LIST));
-                tbaStatus = "loaded";
-            } else {
-                tbaStatus = "empty";
-            }
-        } catch (error) {
-            console.warn("TBA Fetch failed, using cache or offline mode:", error);
-            if (Object.keys(TEAM_LIST).length === 0) tbaStatus = "error";
-        } finally {
-            document.getElementById('teamNum').dispatchEvent(new Event('input'));
-        }
-    }
-
-    fetchEvents().then(() => initTBA());
-
-    /* =========================================
-       CONFIG & UI LOGIC
-    ========================================= */
-    const BAD_WORDS = ["damn", "hell", "shit", "fuck", "bitch", "crap", "ass", "bastard", "dick", "piss", "cock", "pussy", "slut", "whore", "nigger", "fag", "retard", "sex", "nude", "gyatt", "nigga","hitler", "nigg"];
-    let currentPage = 0; 
-
-    setInterval(() => {
-        const now = new Date();
-        document.getElementById('liveClock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    }, 1000);
-
-    function toggleFullScreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => console.log(err.message));
-        } else {
-            if (document.exitFullscreen) document.exitFullscreen();
-        }
-    }
-    
-    function setupOtherToggle(triggerId, boxId) {
-        document.getElementById(triggerId).addEventListener('change', function(e) {
-            const box = document.getElementById(boxId);
-            if(e.target.checked) {
-                box.style.display = 'block';
-                box.querySelector('input').focus();
-            } else {
-                box.style.display = 'none';
-                box.querySelector('input').value = ''; 
-            }
-        });
-    }
-
-    setupOtherToggle('intakeOtherTrigger', 'intakeOtherBox');
-    setupOtherToggle('visOtherTrigger', 'visOtherBox');
-    setupOtherToggle('visSoftOtherTrigger', 'visSoftOtherBox');
-    setupOtherToggle('yawTrigger', 'yawFreedomBox');
-    setupOtherToggle('pitchTrigger', 'pitchFreedomBox');
-
-    // TEAM NUMBER INPUT — triggers image fetch with debounce
-    document.getElementById('teamNum').addEventListener('input', function() {
-        const num = this.value;
-        const disp = document.getElementById('teamNameDisplay');
-        const container = document.getElementById('robotImageContainer');
-        const statusEl = document.getElementById('imageStatus');
-        const spinnerEl = document.getElementById('imageLoadingSpinner');
-
-        // Reset image state
-        container.style.display = 'none';
-        document.getElementById('robotImage').style.display = 'none';
-        statusEl.style.display = 'none';
-        spinnerEl.style.display = 'none';
-        document.getElementById('robotImage').src = '';
-        clearTimeout(imageFetchTimeout);
-
-        // Cancel any in-flight image fetch
-        if (currentImageFetchController) {
-            currentImageFetchController.abort();
-            currentImageFetchController = null;
-        }
-        
-        // Update team name display
-        if (tbaStatus === "loaded") {
-            if(TEAM_LIST[num]) {
-                const team = TEAM_LIST[num];
-                disp.innerHTML = `
-                    <div style="font-size: 1.15rem; margin-bottom: 4px; color: #000;">✓ ${team.name}</div>
-                    <div style="font-size: 0.8rem; color: #333; font-weight: 600;">📍 ${team.location}</div>
-                `;
-                disp.style.background = "var(--accent)";
-                // Debounce image fetch by 600ms — avoids firing on every keystroke
-                imageFetchTimeout = setTimeout(() => fetchRobotImage(num), 600);
-            } else {
-                disp.textContent = num ? "Not in TBA Official List" : "Waiting for input...";
-                disp.style.color = num ? "var(--danger)" : "var(--accent)";
-                disp.style.background = "rgba(255,255,255,0.05)";
-            }
-        } else if (tbaStatus === "loading") {
-            disp.textContent = "Fetching TBA Teams...";
-            disp.style.color = "var(--accent)";
-            disp.style.background = "rgba(255,255,255,0.05)";
-        } else if (tbaStatus === "empty") {
-            disp.textContent = num ? "Team " + num + " (TBA list empty)" : "TBA has no teams yet";
-            disp.style.color = num ? "#000" : "var(--accent)";
-            disp.style.background = num ? "var(--accent)" : "rgba(255,255,255,0.05)";
-            // Still try to fetch image even in empty-list mode
-            if (num) imageFetchTimeout = setTimeout(() => fetchRobotImage(num), 600);
-        } else {
-            disp.textContent = num ? "Team " + num + " (Offline Mode)" : "API Error. Enter any team.";
-            disp.style.color = num ? "#000" : "var(--danger)";
-            disp.style.background = num ? "var(--accent)" : "rgba(255,68,68,0.1)";
-        }
-        
-        updateNavButtons(); 
-    });
-
-    const inputsToMonitor = ['scouterName', 'notes', 'weight', 'capacity', 'preload', 'autoTotal', 'climbTime', 'intakeOtherVal', 'visOtherVal', 'visSoftOtherVal', 'turretCount', 'yawFreedomVal', 'pitchFreedomVal'];
-    inputsToMonitor.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.addEventListener('input', updateNavButtons);
-    });
-
-    function containsProfanity(text) {
-        if (!text) return false;
-        const lower = text.toLowerCase();
-        return BAD_WORDS.some(word => new RegExp(`\\b${word}\\b`, "i").test(lower));
-    }
-
-    /* =========================================
-       NAVIGATION & VALIDATION
-    ========================================= */
-    function updateNavButtons() {
-        const nextBtn = document.getElementById('nextBtn');
-        let isValid = true;
-
-        if (currentPage === 0) {
-            const name = document.getElementById('scouterName').value.trim();
-            const team = document.getElementById('teamNum').value.trim();
-            
-            if (name === "") {
-                document.getElementById('err-name').style.display = 'block';
-                document.getElementById('scouterName').classList.add('violation');
-                isValid = false;
-            } else {
-                document.getElementById('err-name').style.display = 'none';
-                document.getElementById('scouterName').classList.remove('violation');
-                document.getElementById('profanity-name').style.display = 'none';
-            }
-            
-            if (!team) {
-                document.getElementById('err-team').style.display = 'none';
-                isValid = false;
-            } else if (tbaStatus === "loaded" && !TEAM_LIST[team]) {
-                document.getElementById('err-team').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('err-team').style.display = 'none';
-            }
-        }
-        else if (currentPage === 1) {
-            const weightVal = document.getElementById('weight').value;
-            const unit = document.getElementById('weightUnit').value;
-            const capVal = document.getElementById('capacity').value;
-            const weight = parseFloat(weightVal);
-            let weightLbs = unit === 'kg' ? weight * 2.20462 : weight;
-            
-            if (weightVal === '' || capVal === '') { isValid = false; }
-            else if (weightLbs > 135) {
-                document.getElementById('err-weight').style.display = 'block';
-                document.getElementById('weight').classList.add('violation');
-                isValid = false;
-            } else {
-                document.getElementById('err-weight').style.display = 'none';
-                document.getElementById('weight').classList.remove('violation');
-            }
-            
-            if(document.getElementById('intakeOtherBox').style.display === 'block' && document.getElementById('intakeOtherVal').value.trim() === '') isValid = false;
-            if(document.getElementById('visOtherBox').style.display === 'block' && document.getElementById('visOtherVal').value.trim() === '') isValid = false;
-            if(document.getElementById('visSoftOtherBox').style.display === 'block' && document.getElementById('visSoftOtherVal').value.trim() === '') isValid = false;
-        }
-        else if (currentPage === 2) {
-            const preloadVal = document.getElementById('preload').value;
-            const autoTotalVal = document.getElementById('autoTotal').value;
-            const preload = parseFloat(preloadVal);
-            const capacity = parseFloat(document.getElementById('capacity').value) || 0;
-            const errPreload = document.getElementById('err-preload');
-            
-            if (preloadVal === '' || autoTotalVal === '') { isValid = false; }
-            
-            if (preload > 8) {
-                errPreload.innerText = "Max Preload is 8";
-                errPreload.style.display = 'block';
-                document.getElementById('preload').classList.add('violation');
-                isValid = false;
-            } else if (preload > capacity) {
-                errPreload.innerText = "Preload > Capacity (" + capacity + ")";
-                errPreload.style.display = 'block';
-                document.getElementById('preload').classList.add('violation');
-                isValid = false;
-            } else {
-                errPreload.style.display = 'none';
-                document.getElementById('preload').classList.remove('violation');
-            }
-        }
-        else if (currentPage === 3) {
-            const climbTimeVal = document.getElementById('climbTime').value;
-            const notes = document.getElementById('notes').value;
-            if (climbTimeVal === '') isValid = false;
-            
-            if(containsProfanity(notes)) {
-                document.getElementById('profanity-notes').style.display = 'block';
-                document.getElementById('notes').classList.add('violation');
-                isValid = false;
-            } else {
-                document.getElementById('profanity-notes').style.display = 'none';
-                document.getElementById('notes').classList.remove('violation');
-            }
-        }
-
-        nextBtn.disabled = !isValid;
-    }
-
-    function navigate(dir) {
-        if (dir === 1 && document.getElementById('nextBtn').disabled) return; 
-        document.getElementById(`page${currentPage}`).classList.remove('active');
-        currentPage += dir;
-        document.getElementById(`page${currentPage}`).classList.add('active');
-        document.getElementById('backBtn').style.visibility = currentPage === 0 ? 'hidden' : 'visible';
-        
-        if(currentPage === 4) { 
-            document.getElementById('nextBtn').style.display = 'none';
-            prepareReview();
-        } else if (currentPage === 5) { 
-            document.getElementById('nextBtn').style.display = 'none';
-            initCanvas(); 
-        } else {
-            document.getElementById('nextBtn').style.display = 'block';
-            updateNavButtons();
-        }
-        window.scrollTo(0,0);
-    }
-
-    function getMultiValues(name, otherId = null) {
-        let vals = [];
-        document.querySelectorAll(`input[name="${name}"]:checked`).forEach(cb => {
-            if(otherId && cb.id.includes('Other')) {
-                const txt = document.getElementById(otherId).value.trim();
-                if(txt) vals.push("Other: " + txt);
-            } else {
-                vals.push(cb.value);
-            }
-        });
-        return vals.join(' + ');
-    }
-
-    /* =========================================
-       REVIEW & QR GENERATION
-    ========================================= */
-    function prepareReview() {
-        const t = document.getElementById('teamNum').value;
-        const name = TEAM_LIST[t] ? TEAM_LIST[t].name : "Unknown";
-        let html = `<strong>Team ${t} - ${name}</strong><br>`;
-        html += `Event: ${EVENT_KEY}<br>`;
-        html += `Scouter: ${document.getElementById('scouterName').value}<br>`;
-        html += `<hr style="border-color:#333; margin:5px 0;">`;
-        html += `Chassis: ${document.getElementById('chassis').value}<br>`;
-        html += `Auto Intake: ${getMultiValues('autoIntakePos') || 'None'}<br>`;
-        html += `Auto Hang: ${getMultiValues('autoHangPos') || 'None'}<br>`;
-        document.getElementById('reviewText').innerHTML = html;
-    }
-
-    function generateQR() {
-        const teamNum = document.getElementById('teamNum').value;
-        const teamName = TEAM_LIST[teamNum] ? TEAM_LIST[teamNum].name : "Unknown Team";
-        const weightVal = parseFloat(document.getElementById('weight').value);
-        const unit = document.getElementById('weightUnit').value;
-        const finalWeightLbs = unit === 'kg' ? (weightVal * 2.20462).toFixed(1) : weightVal;
-
-        const tCount = document.getElementById('turretCount').value || "0";
-        let turVals = `Count: ${tCount}`;
-        if(document.getElementById('yawTrigger').checked) turVals += ` | Yaw: ${document.getElementById('yawFreedomVal').value || 'Yes'}`;
-        if(document.getElementById('pitchTrigger').checked) turVals += ` | Pitch: ${document.getElementById('pitchFreedomVal').value || 'Yes'}`;
-
-        const data = {
-            t: parseInt(teamNum),
-            sc: document.getElementById('scouterName').value.replace(/\t/g, ' ').replace(/\n/g, ' '),
-            dt: document.getElementById('chassis').value,
-            wt: finalWeightLbs,
-            mx: document.getElementById('capacity').value,
-            in: getMultiValues('intake', 'intakeOtherVal'),
-            visH: getMultiValues('visionHard', 'visOtherVal'),
-            visS: getMultiValues('visionSoft', 'visSoftOtherVal'),
-            sht: getMultiValues('shoot'),
-            tur: turVals,
-            stL: getMultiValues('startPos'),
-            pre: document.getElementById('preload').value,
-            auInt: getMultiValues('autoIntakePos') || 'None', 
-            auHng: getMultiValues('autoHangPos') || 'None',
-            at: document.getElementById('autoTotal').value,
-            mid: document.getElementById('crossMid').checked ? 1 : 0,
-            ter: getMultiValues('terrain'),
-            cLv: getMultiValues('climbLvl'),
-            cPs: getMultiValues('climbPos'),
-            cTm: document.getElementById('climbTime').value,
-            ph: document.getElementById('photosTaken').checked ? 1 : 0,
-            nt: document.getElementById('notes').value.replace(/\t/g, ' ').replace(/\n/g, ' ')
-        };
-
-        const tsvValues = [
-            data.t, data.sc, data.dt, data.wt, data.mx, 
-            data.in, data.visH, data.visS, data.sht, data.tur,
-            data.stL, data.pre, data.auInt, data.auHng, data.at, 
-            data.mid, data.ter, data.cLv, data.cPs, data.cTm, data.ph, data.nt
-        ];
-
-        const compressed = LZString.compressToBase64(tsvValues.join('\t'));
-
-        document.getElementById('qrTeamText').innerText = `${teamNum}`;
-        document.getElementById('qrTeamName').innerText = teamName;
-        document.getElementById('qrHeader').style.display = "block";
-        document.getElementById('qrcode').innerHTML = "";
-        document.getElementById('qrcode').style.display = "block";
-        
-        new QRCode(document.getElementById("qrcode"), {
-            text: compressed, width: 256, height: 256,
-            colorDark: "#000000", colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.L
-        });
-        
-        document.getElementById('generateBtn').style.display = 'none';
-        document.getElementById('goToPathBtn').style.display = 'inline-block';
-
-        const counter = document.getElementById('robotCounter');
-        let count = parseInt(counter.innerText.split(': ')[1]) + 1;
-        counter.innerText = "ROBOTS: " + count;
-    }
-
-    /* =========================================
-       PATH DRAWING (STEP 7)
-    ========================================= */
-    const canvas = document.getElementById('fieldCanvas');
-    const ctx = canvas.getContext('2d');
-    let isDrawing = false;
-    let strokes = [];
-    let currentStroke = [];
-    let drawingMode = 'line'; 
-
-    const PATH_COLORS = ["#00C851","#33b5e5","#ff4444","#ffbb33","#aa66cc"];
-
-    function toggleDrawMode() {
-        drawingMode = drawingMode === 'line' ? 'dot' : 'line';
-        document.getElementById('modeText').innerText = drawingMode === 'line' ? 'Drawing Line' : 'Placing Dot';
-        document.getElementById('toggleModeBtn').innerText = drawingMode === 'line' ? '📍 Switch to Dot' : '✏️ Switch to Line';
-    }
-    
-    function initCanvas() {
-        const container = document.getElementById('fieldContainer');
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
-        drawFieldBackground();
-    }
-
-    window.addEventListener('resize', () => { if (currentPage === 5) initCanvas(); });
-
-    function drawFieldBackground() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (strokes.length > 0) {
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            strokes.forEach((stroke, index) => {
-                const color = PATH_COLORS[index % PATH_COLORS.length];
-                if (stroke.length === 1) {
-                    const x = (stroke[0].x / 100) * canvas.width;
-                    const y = (stroke[0].y / 100) * canvas.height;
-                    ctx.fillStyle = color;
-                    ctx.beginPath();
-                    ctx.arc(x, y, 8, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.strokeStyle = 'white';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(x, y, 8, 0, Math.PI * 2);
-                    ctx.stroke();
-                } else if (stroke.length > 1) {
-                    ctx.beginPath();
-                    ctx.strokeStyle = "rgba(0,0,0,0.5)";
-                    ctx.lineWidth = 6;
-                    ctx.moveTo((stroke[0].x/100)*canvas.width+2, (stroke[0].y/100)*canvas.height+2);
-                    for (let i = 1; i < stroke.length; i++) {
-                        ctx.lineTo((stroke[i].x/100)*canvas.width+2, (stroke[i].y/100)*canvas.height+2);
-                    }
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = 3;
-                    ctx.moveTo((stroke[0].x/100)*canvas.width, (stroke[0].y/100)*canvas.height);
-                    for (let i = 1; i < stroke.length; i++) {
-                        ctx.lineTo((stroke[i].x/100)*canvas.width, (stroke[i].y/100)*canvas.height);
-                    }
-                    ctx.stroke();
-                    ctx.fillStyle = "#00C851";
-                    ctx.beginPath();
-                    ctx.arc((stroke[0].x/100)*canvas.width, (stroke[0].y/100)*canvas.height, 6, 0, Math.PI*2);
-                    ctx.fill();
-                    const last = stroke[stroke.length-1];
-                    ctx.fillStyle = "#ff4444";
-                    ctx.beginPath();
-                    ctx.arc((last.x/100)*canvas.width, (last.y/100)*canvas.height, 6, 0, Math.PI*2);
-                    ctx.fill();
-                }
-            });
-        }
-        if (currentStroke.length > 1) {
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.strokeStyle = PATH_COLORS[strokes.length % PATH_COLORS.length];
-            ctx.beginPath();
-            ctx.moveTo((currentStroke[0].x/100)*canvas.width, (currentStroke[0].y/100)*canvas.height);
-            for (let i = 1; i < currentStroke.length; i++) {
-                ctx.lineTo((currentStroke[i].x/100)*canvas.width, (currentStroke[i].y/100)*canvas.height);
-            }
-            ctx.stroke();
-        }
-    }
-
-    function getPos(e) {
-        const rect = canvas.getBoundingClientRect();
-        let clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-        let clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-        return { x: clientX - rect.left, y: clientY - rect.top };
-    }
-
-    function startDraw(e) {
-        if(e.cancelable) e.preventDefault();
-        const pos = getPos(e);
-        if (drawingMode === 'dot') {
-            strokes.push([{ x: parseFloat((pos.x/canvas.width*100).toFixed(1)), y: parseFloat((pos.y/canvas.height*100).toFixed(1)) }]);
-            drawFieldBackground();
-        } else {
-            isDrawing = true;
-            currentStroke = [];
-            addPoint(pos.x, pos.y);
-        }
-    }
-
-    function draw(e) {
-        if (!isDrawing) return;
-        if(e.cancelable) e.preventDefault();
-        const pos = getPos(e);
-        addPoint(pos.x, pos.y);
-        drawFieldBackground();
-    }
-
-    function endDraw(e) {
-        if (!isDrawing) return;
-        if(e.cancelable) e.preventDefault();
-        isDrawing = false;
-        if (currentStroke.length > 0) { strokes.push(currentStroke); currentStroke = []; }
-        drawFieldBackground();
-    }
-
-    function addPoint(pixelX, pixelY) {
-        const xPct = parseFloat((pixelX/canvas.width*100).toFixed(1));
-        const yPct = parseFloat((pixelY/canvas.height*100).toFixed(1));
-        if (currentStroke.length > 0) {
-            const last = currentStroke[currentStroke.length-1];
-            if (Math.sqrt(Math.pow(xPct-last.x,2)+Math.pow(yPct-last.y,2)) < 2.5) return;
-        }
-        currentStroke.push({ x: xPct, y: yPct });
-    }
-
-    function clearCanvas() {
-        strokes = []; currentStroke = [];
-        drawFieldBackground();
-        document.getElementById('qrcodePath').innerHTML = "";
-        document.getElementById('qrcodePath').style.display = 'none';
-        document.getElementById('pathQrHeader').style.display = 'none';
-        const btn = document.getElementById('generatePathBtn');
-        btn.style.display = 'inline-block';
-        btn.innerText = 'Generate Path QRs';
-    }
-
-    function undoLastStroke() { strokes.pop(); drawFieldBackground(); }
-
-    canvas.addEventListener('mousedown', startDraw);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', endDraw);
-    canvas.addEventListener('mouseout', endDraw);
-    canvas.addEventListener('touchstart', startDraw, {passive: false});
-    canvas.addEventListener('touchmove', draw, {passive: false});
-    canvas.addEventListener('touchend', endDraw, {passive: false});
-
-    function generatePathQR() {
-        if (strokes.length === 0) { alert("Please draw at least one path segment."); return; }
-        const teamNum = document.getElementById('teamNum').value;
-        const teamName = TEAM_LIST[teamNum] ? TEAM_LIST[teamNum].name : "";
-        const eventCode = EVENT_KEY.toUpperCase(); 
-        const matchNum = "0"; 
-
-        document.getElementById('pathQrTeamText').innerText = `Team ${teamNum}`;
-        document.getElementById('pathQrHeader').style.display = "block";
-
-        const qrContainer = document.getElementById('qrcodePath');
-        qrContainer.innerHTML = "";
-        qrContainer.style.display = "block";
-
-        strokes.forEach((stroke, index) => {
-            if (stroke.length < 2) return;
-            const pathString = stroke.map(p => `${Math.round(p.x)},${Math.round(p.y)}`).join('|');
-            const compressed = LZString.compressToBase64([eventCode, matchNum, teamNum, pathString].join('\t'));
-
-            const wrapper = document.createElement('div');
-            wrapper.style.cssText = "margin-bottom:20px; padding:15px; background:#fff; border-radius:10px; color:#000; text-align:center;";
-            const label = document.createElement('div');
-            label.innerText = `Team ${teamNum} ${teamName ? '(' + teamName + ')' : ''}\nAuto Path #${index + 1}`;
-            label.style.cssText = "font-weight:bold; margin-bottom:10px; font-size:1.1rem; line-height:1.4;";
-            const qrDiv = document.createElement('div');
-            wrapper.appendChild(label);
-            wrapper.appendChild(qrDiv);
-            qrContainer.appendChild(wrapper);
-
-            new QRCode(qrDiv, {
-                text: compressed, width: 200, height: 200,
-                colorDark: "#D4AF37", colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.L
-            });
-        });
-        
-        const btn = document.getElementById('generatePathBtn');
-        btn.style.display = 'inline-block';
-        btn.innerText = "Update Path QRs";
-    }
-
-    function resetForm() {
-        if(confirm("Are you sure you want to finish and reset?")) {
-            document.getElementById('scoutForm').reset();
-            document.getElementById('eventSearch').value = '';
-            document.getElementById('intakeOtherBox').style.display = 'none';
-            document.getElementById('visOtherBox').style.display = 'none';
-            document.getElementById('visSoftOtherBox').style.display = 'none';
-            document.getElementById('yawFreedomBox').style.display = 'none';
-            document.getElementById('pitchFreedomBox').style.display = 'none';
-
-            const disp = document.getElementById('teamNameDisplay');
-            disp.textContent = "Waiting for input...";
-            disp.style.color = "var(--accent)";
-            disp.style.background = "rgba(255,255,255,0.05)";
-
-            document.getElementById('robotImageContainer').style.display = 'none';
-            document.getElementById('robotImage').style.display = 'none';
-            document.getElementById('robotImage').src = '';
-            document.getElementById('imageStatus').style.display = 'none';
-            document.getElementById('imageLoadingSpinner').style.display = 'none';
-            clearTimeout(imageFetchTimeout);
-            if (currentImageFetchController) { currentImageFetchController.abort(); currentImageFetchController = null; }
-
-            document.getElementById('qrHeader').style.display = "none";
-            document.getElementById('pathQrHeader').style.display = "none";
-            document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.profanity-alert').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.violation').forEach(el => el.classList.remove('violation'));
-            document.getElementById('qrcode').innerHTML = "";
-            document.getElementById('qrcode').style.display = "none";
-            document.getElementById('qrcodePath').innerHTML = "";
-            document.getElementById('qrcodePath').style.display = "none";
-            document.getElementById('generateBtn').style.display = 'inline-block';
-            document.getElementById('goToPathBtn').style.display = 'none'; 
-            const pathBtn = document.getElementById('generatePathBtn');
-            pathBtn.style.display = 'inline-block';
-            pathBtn.innerText = "Generate Path QRs";
-
-            strokes = []; currentStroke = [];
-            document.querySelector('.page.active').classList.remove('active');
-            currentPage = 0;
-            document.getElementById('page0').classList.add('active');
-            document.getElementById('backBtn').style.visibility = 'hidden';
-            document.getElementById('nextBtn').style.display = 'block';
-            document.getElementById('teamNum').dispatchEvent(new Event('input'));
-            updateNavButtons();
-            window.scrollTo(0,0);
-        }
-    }
-
-    // Init nav state
-    document.getElementById('backBtn').style.visibility = 'hidden';
-    updateNavButtons();
-</script>
+<!-- ═══════════════════════════════════════
+     APP SCRIPTS
+     Load order matters:
+       1. tba.js    — API state & image fetching
+       2. canvas.js — drawing state (strokes)
+       3. qr.js     — uses strokes + TEAM_LIST
+       4. form.js   — navigation, validation, UI (runs last, inits everything)
+═══════════════════════════════════════ -->
+<script src="js/tba.js"></script>
+<script src="js/canvas.js"></script>
+<script src="js/qr.js"></script>
+<script src="js/form.js"></script>
 
 </body>
 </html>

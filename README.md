@@ -1,94 +1,43 @@
-AI WROTE THIS DESCRIPTION
+# Unipards 2026 Pit Scouting App
 
+A mobile-first pit scouting tool for FRC Team 6998 — Unipards.
 
+## File Structure
 
-FRC 6998 Pit Collect Tool (2026)
+```
+pit_collect_2026/
+├── index.html          # Main app shell (HTML only, no inline JS/CSS)
+├── field_2026.png      # Field map image for auto path drawing
+├── css/
+│   └── style.css       # All styles and theme variables
+└── js/
+    ├── tba.js          # The Blue Alliance API — events, teams, robot images
+    ├── canvas.js       # Auto path drawing logic
+    ├── qr.js           # QR code generation (data QR + path QR)
+    └── form.js         # Navigation, validation, UI logic (loads last)
+```
 
-This is a standalone, offline-capable web application for collecting Pit Scouting data and Autonomous Paths for the FRC 2026 game. It generates compressed QR codes that can be scanned by the main Scouting App to upload data without needing an internet connection in the pits.
+## Script Load Order
 
-Features
+The scripts must load in this order (already set in `index.html`):
 
-Offline First: Does not require internet to generate QR codes.
+1. **tba.js** — defines `TEAM_LIST`, `EVENT_KEY`, `TEAM_IMAGES`, image fetch functions
+2. **canvas.js** — defines `strokes`, `currentStroke`, drawing functions
+3. **qr.js** — uses `strokes` and `TEAM_LIST` from above
+4. **form.js** — wires everything together, runs navigation and validation
 
-Data Compression: Uses LZ-String to compress data into dense QR codes.
+## Robot Image Logic
 
-Auto Path Drawing: Allows scouters to draw multiple autonomous paths on a visual field map.
+- Only fetches from **2026 and 2025** TBA media endpoints
+- Tests each candidate URL with a real `Image()` load before caching
+- **Never caches failures** — so every retry is fresh
+- If a cached URL goes stale, it auto-heals and re-fetches
+- If no image is found in 2025/2026, shows "No robot image found on TBA (2025/2026)"
 
-Multi-QR Generation: Generates separate QR codes for robot data and each autonomous path drawn.
+## Setup
 
-Validation: Includes profanity filters and logical checks (e.g., Preload cannot exceed Capacity).
+1. Clone the repo
+2. Add your `field_2026.png` to the root folder
+3. Open `index.html` in a browser (or serve with any static server)
 
-Setup Guide
-
-Requirements
-
-A modern web browser (Chrome, Safari, Firefox).
-
-A device with a touchscreen (tablet/iPad preferred) for drawing paths.
-
-Files Needed
-
-Ensure these files are in the same folder:
-
-index.html (The main application code)
-
-field_2026.png (Top-down view of the 2026 Field)
-
-Installation
-
-Simply open index.html in your web browser. No server or installation is required.
-
-How to Use
-
-Step 1 (ID): Enter name and team number.
-
-Step 2-3 (Specs): Enter robot weight and hardware details.
-
-Step 4 (Auto): Check boxes for auto capabilities.
-
-Step 5 (Teleop): Enter climb and endgame details.
-
-Step 6 (Review): Click "Generate Data QR". Scan this with the Scanner App.
-
-Step 7 (Path): Click "Next: Draw Auto Path".
-
-Draw lines for the auto routine.
-
-Lift finger to start a new path.
-
-Click "Generate Path QRs" and scan them individually.
-
-Data Schemas
-
-Robot Data QR (22 Columns)
-
-Format: TSV (Tab Separated Values) -> Compressed Base64
-
-Index  Field          Description
-0      Team Number    e.g., 6998
-1      Scouter Name   Name of person scouting
-2      Chassis        Swerve, Tank, etc.
-3      Weight         lbs
-...    ...            ...
-21     Notes          Text notes
-
-Path QR (4 Columns)
-
-Format: TSV -> Compressed Base64
-
-Index  Field         Value
-0      Event Code    2026PIT
-1      Match Number  0 (Constant for Pit)
-2      Team Number   e.g., 6998
-3      Path Data     x1,y1
-
-Future Features
-
-Photo Capture: Camera integration for robot photos.
-
-Blue Alliance Integration: Fetch team avatars.
-
-Local Storage History: Save progress locally to prevent data loss.
-
-
-Dark Mode: Theming for different lighting conditions.
+> Note: The TBA API key is embedded in `js/tba.js`. Replace it with your own from [thebluealliance.com](https://www.thebluealliance.com/account).
