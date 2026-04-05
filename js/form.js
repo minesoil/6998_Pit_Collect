@@ -221,6 +221,13 @@ function checkTurretType() {
         degreeSection.style.display = 'none';
     }
 }
+function toggleAxisInput(axis) {
+    const boxId = axis === 'yaw' ? 'yawFreedomBox' : 'pitchFreedomBox';
+    const cbId  = axis === 'yaw' ? 'yawTrigger'    : 'pitchTrigger';
+    document.getElementById(boxId).style.display = document.getElementById(cbId).checked ? 'block' : 'none';
+    if (!document.getElementById(cbId).checked)
+        document.getElementById(axis + 'FreedomVal').value = '';
+}
 
 // ── Climb Time Show/Hide ───────────────────────────────────────────────────
 function updateClimbTimeVisibility() {
