@@ -63,10 +63,13 @@
 
         <div class="settings-section">
             <div class="settings-section-title">Scouter Assignments</div>
-            <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:10px;">Assign team number ranges to each scouter pair.</p>
-            <div id="assignmentList" style="margin-bottom:10px;"></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <select id="assignScouter" style="flex:2;min-width:120px;">
+            <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:10px;">
+                Assign specific teams from the current event roster to each scouter pair.<br>
+                <span style="color:var(--accent);">Hold Ctrl / Cmd to select multiple teams.</span>
+            </p>
+            <div id="assignmentList" style="margin-bottom:12px;"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+                <select id="assignScouter" style="flex:2;min-width:140px;">
                     <option value="">Select scouter...</option>
                     <option value="黄浩倫 and 李苡安">黄浩倫 and 李苡安</option>
                     <option value="戴均翰 and Orson">戴均翰 and Orson</option>
@@ -74,37 +77,22 @@
                     <option value="郭耘睿 and Justin">郭耘睿 and Justin</option>
                     <option value="裴敬庭 and 李承峰">裴敬庭 and 李承峰</option>
                 </select>
-                <input type="number" id="assignFrom" placeholder="From #" style="flex:1;min-width:60px;">
-                <input type="number" id="assignTo"   placeholder="To #"   style="flex:1;min-width:60px;">
             </div>
-            <button type="button" class="btn btn-next" style="padding:10px;font-size:0.8rem;width:100%;margin-top:8px;" onclick="addAssignment()">+ Add Assignment</button>
+            <div style="margin-bottom:8px;">
+                <label style="font-size:0.75rem;color:var(--text-secondary);display:block;margin-bottom:4px;">
+                    Teams from current event — select one or more:
+                </label>
+                <select id="assignTeamSelect" multiple
+                    style="width:100%;height:160px;background:var(--input-bg);border:1px solid #333;border-radius:10px;color:white;font-size:0.85rem;padding:6px;">
+                    <option disabled>Loading teams...</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-next" style="padding:10px;font-size:0.8rem;width:100%;" onclick="addAssignment()">+ Assign Selected Teams</button>
         </div>
 
         <div class="settings-section">
             <div class="settings-section-title">Storage Usage</div>
             <div id="storageBar" style="margin-top:8px;"></div>
-        </div>
-    </div>
-</div>
-
-<!-- Pit Map Modal -->
-<div id="pitMapModal" class="modal-overlay" style="display:none;">
-    <div class="modal-box modal-box--large">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-            <h2 class="modal-title" style="margin:0;">🗺️ Pit Map</h2>
-            <button type="button" class="modal-close-btn" onclick="closePitMap()">✕</button>
-        </div>
-        <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:10px;">
-            Enter a team number, then tap the map to drop their pin.
-        </p>
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
-            <input type="number" id="pitMapTeamInput" placeholder="Team # to pin" style="flex:1;">
-            <button type="button" class="btn btn-next" style="padding:10px;font-size:0.8rem;flex:0 0 auto;" id="pinModeBtn" onclick="togglePinMode()">📍 Pin Mode: OFF</button>
-            <button type="button" class="btn btn-back" style="padding:10px;font-size:0.8rem;flex:0 0 auto;" onclick="clearPitPins()">Clear</button>
-        </div>
-        <div id="pitMapContainer">
-            <canvas id="pitMapCanvas"></canvas>
-            <div id="pitMapPins"></div>
         </div>
     </div>
 </div>
@@ -120,7 +108,6 @@
         <div class="header-center" style="display:flex;gap:6px;justify-content:center;">
             <button type="button" class="fs-btn" onclick="toggleFullScreen()">⛶ FS</button>
             <button type="button" class="fs-btn" onclick="openSettings()">⚙️</button>
-            <button type="button" class="fs-btn" onclick="openPitMap()">🗺️</button>
         </div>
         <div class="header-right">
             <div class="counter-badge" id="robotCounter">ROBOTS: 0</div>
@@ -167,6 +154,8 @@
         <input type="number" id="teamNum" placeholder="e.g. 6998">
         <div id="teamNameDisplay" class="team-display">Waiting for event selection...</div>
         <div id="duplicateHint" class="duplicate-hint" style="display:none;"></div>
+        <!-- TBA team detail panel (injected by tba.js) -->
+        <div id="teamTBADetail" style="display:none;"></div>
         <div id="robotImageContainer">
             <img id="robotImage" alt="Robot Image" crossorigin="anonymous">
         </div>
@@ -318,8 +307,8 @@
     </div>
     <div class="card">
         <label>Total Auto Fuel (Auto 總共顆數)</label>
-        <span class="sub-label">Scored during Auto</span>
-        <input type="number" id="autoTotal" placeholder="0" min="0" max="99">
+        <span class="sub-label">Scored during Auto — max 499</span>
+        <input type="number" id="autoTotal" placeholder="0" min="0" max="499">
     </div>
     <div class="card">
         <label class="toggle-btn" style="width:100%;">
