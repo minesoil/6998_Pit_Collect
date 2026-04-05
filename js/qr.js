@@ -5,9 +5,8 @@
 ========================================= */
 
 const SCOUTED_KEY  = 'SCOUTED_TEAMS_2026_V1';
-const QR_VERSION   = 'v2'; // bump this if field order changes
+const QR_VERSION   = 'v2';
 
-// ── Scouted Data Storage ───────────────────────────────────────────────────
 function getScoutedTeams() {
     try { return JSON.parse(localStorage.getItem(SCOUTED_KEY) || '[]'); } catch(e) { return []; }
 }
@@ -36,7 +35,6 @@ function getScoutedEntry(teamNum) {
     return getScoutedTeams().find(e => e.teamNum === String(teamNum) && e.eventKey === EVENT_KEY) || null;
 }
 
-// ── Data QR ───────────────────────────────────────────────────────────────
 function generateQR() {
     const teamNum        = document.getElementById('teamNum').value;
     const teamName       = TEAM_LIST[teamNum]?.name ?? "Unknown Team";
@@ -55,7 +53,6 @@ function generateQR() {
     const climbLvl  = getMultiValues('climbLvl');
     const climbTime = document.getElementById('climbTime').value;
 
-    // QR_VERSION prepended so decoders can handle schema changes
     const tsvValues = [
         QR_VERSION,
         parseInt(teamNum),
@@ -136,7 +133,6 @@ function generateQR() {
     updateStorageBar();
 }
 
-// ── Path QR ───────────────────────────────────────────────────────────────
 function generatePathQR() {
     if (strokes.length === 0) { alert("Please draw at least one path segment or place a dot."); return; }
 
@@ -154,7 +150,6 @@ function generatePathQR() {
     strokes.forEach((stroke, index) => {
         if (stroke.length < 1) return;
         const pathString = stroke.map(p => `${Math.round(p.x)},${Math.round(p.y)}`).join('|');
-        // QR_VERSION included in path QR too
         const compressed = LZString.compressToBase64(
             [QR_VERSION, eventCode, '0', teamNum, pathString].join('\t')
         );
@@ -179,7 +174,6 @@ function generatePathQR() {
     document.getElementById('generatePathBtn').innerText = "Update Path QRs";
 }
 
-// ── Scouted Teams List ─────────────────────────────────────────────────────
 function renderScoutedList() {
     const container = document.getElementById('scoutedListContainer');
     if (!container) return;
@@ -206,7 +200,6 @@ function renderScoutedList() {
     `).join('');
 }
 
-// ── Unscouted Teams List ───────────────────────────────────────────────────
 function renderUnscoutedList() {
     const container = document.getElementById('unscoutedListContainer');
     if (!container) return;
@@ -238,9 +231,7 @@ function renderUnscoutedList() {
     `;
 }
 
-// Tap an unscouted chip → go back to page 0 with that team pre-filled
 function jumpToTeam(teamNum) {
-    // Navigate back to page 0
     document.querySelector('.page.active').classList.remove('active');
     currentPage = 0;
     document.getElementById('page0').classList.add('active');
@@ -249,14 +240,12 @@ function jumpToTeam(teamNum) {
     document.querySelector('.nav-bar').style.display    = 'flex';
     document.body.style.paddingBottom = '100px';
 
-    // Pre-fill team number
     const input = document.getElementById('teamNum');
     input.value = teamNum;
     input.dispatchEvent(new Event('input'));
     window.scrollTo(0, 0);
 }
 
-// ── Quick-View Modal ───────────────────────────────────────────────────────
 let _quickViewTeamNum = null;
 
 function openQuickView(teamNum) {
@@ -314,12 +303,10 @@ function editFromQuickView() {
     if (num) editEntry(num);
 }
 
-// ── Edit / Prefill Form ────────────────────────────────────────────────────
 function editEntry(teamNum) {
     const entry = getScoutedEntry(teamNum);
     if (!entry) return;
 
-    // Navigate to page 0
     document.querySelector('.page.active').classList.remove('active');
     currentPage = 0;
     document.getElementById('page0').classList.add('active');
@@ -329,12 +316,10 @@ function editEntry(teamNum) {
     document.body.style.paddingBottom = '100px';
     window.scrollTo(0, 0);
 
-    // Small delay to let DOM settle before prefilling
     setTimeout(() => prefillForm(entry), 50);
 }
 
 function prefillForm(e) {
-    // Page 0
     document.getElementById('teamNum').value = e.teamNum;
     document.getElementById('teamNum').dispatchEvent(new Event('input'));
 
@@ -343,19 +328,16 @@ function prefillForm(e) {
         if (opt.value === e.scouter) { opt.selected = true; break; }
     }
 
-    // Page 1
     const chassisSel = document.getElementById('chassis');
     for (const opt of chassisSel.options) {
         if (opt.value === e.chassis) { opt.selected = true; break; }
     }
 
-    // Weight — parse value and unit
     const weightMatch = (e.weight || '').match(/([\d.]+)/);
     if (weightMatch) document.getElementById('weight').value = weightMatch[1];
 
     document.getElementById('capacity').value = e.capacity || '';
 
-    // Restore checkboxes helper
     function setCheckboxes(name, valueStr) {
         const vals = (valueStr || '').split(' + ').map(v => v.trim()).filter(Boolean);
         document.querySelectorAll(`input[name="${name}"]`).forEach(cb => {
@@ -368,7 +350,6 @@ function prefillForm(e) {
     setCheckboxes('visionSoft', e.visionSoft);
     setCheckboxes('shoot',     e.shoot);
 
-    // Turret type
     const turretMatch = (e.turret || '').match(/Type: ([^|]+)/);
     if (turretMatch) {
         const tval = turretMatch[1].trim();
@@ -378,7 +359,6 @@ function prefillForm(e) {
         checkTurretType();
     }
 
-    // Can change degree
     const degMatch = (e.turret || '').match(/CanChangeDeg: (\w+)/);
     if (degMatch) {
         const dval = degMatch[1].trim();
@@ -387,7 +367,6 @@ function prefillForm(e) {
         toggleDegreeOptions();
     }
 
-    // Page 2
     setCheckboxes('startPos',      e.startPos);
     document.getElementById('preload').value   = e.preload   || '';
     setCheckboxes('autoIntakePos', e.autoIntake);
@@ -396,7 +375,6 @@ function prefillForm(e) {
     document.getElementById('crossMid').checked = e.crossMid === 'Yes';
     setCheckboxes('terrain', e.terrain);
 
-    // Page 3
     setCheckboxes('climbLvl', e.climbLvl);
     updateClimbTimeVisibility();
     setCheckboxes('climbPos', e.climbPos);
@@ -409,7 +387,6 @@ function prefillForm(e) {
     updateNavButtons();
 }
 
-// ── CSV Export ────────────────────────────────────────────────────────────
 function exportCSV() {
     const list = getScoutedTeams().filter(e => e.eventKey === EVENT_KEY);
     if (list.length === 0) { alert("No scouted data to export."); return; }
