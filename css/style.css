@@ -351,3 +351,61 @@ input:focus, select:focus, textarea:focus {
     color: var(--accent);
     font-size: 0.8rem;
 }
+
+/* =========================================
+   SCOUTED TEAMS LIST
+========================================= */
+.scouted-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #222;
+}
+.scouted-row:last-child { border-bottom: none; }
+
+.scouted-num {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--accent);
+    min-width: 52px;
+    text-align: center;
+    background: rgba(212,175,55,0.1);
+    border-radius: 8px;
+    padding: 6px 4px;
+}
+
+.scouted-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.scouted-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.scouted-meta {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.scouted-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #000;
+    background: var(--accent);
+    border-radius: 6px;
+    padding: 4px 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
