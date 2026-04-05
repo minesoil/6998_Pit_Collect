@@ -112,6 +112,14 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 }
 
 /* =========================================
+   TEAM TBA DETAIL PANEL
+========================================= */
+#teamTBADetail {
+    margin-top: 12px;
+    animation: fadeIn 0.3s ease;
+}
+
+/* =========================================
    AUTOCOMPLETE DROPDOWN
 ========================================= */
 .autocomplete-container { position: relative; }
@@ -229,32 +237,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 .settings-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
 .settings-section-title { font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
 
-/* =========================================
-   PIT MAP
-========================================= */
-#pitMapContainer {
-    position: relative; width: 100%; height: 260px;
-    background: #1a1a1f; border-radius: 10px; border: 1px solid var(--border);
-    overflow: hidden; cursor: crosshair;
-}
-#pitMapCanvas  { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-#pitMapPins    { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-
-.pit-pin {
-    position: absolute; transform: translate(-50%, -100%);
-    cursor: pointer; pointer-events: all; z-index: 5;
-}
-.pit-pin-dot {
-    width: 12px; height: 12px; background: var(--accent);
-    border-radius: 50%; border: 2px solid white; margin: 0 auto;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-}
-.pit-pin-label {
-    background: var(--accent); color: #000; font-size: 0.65rem;
-    font-weight: 800; padding: 2px 5px; border-radius: 4px;
-    white-space: nowrap; text-align: center; margin-top: 2px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-}
+/* Assignment multi-select scrollbar */
+#assignTeamSelect option { padding: 4px 6px; }
+#assignTeamSelect option:checked { background: rgba(212,175,55,0.3); color: var(--accent); }
 
 /* =========================================
    SCOUTED TEAMS LIST
