@@ -4,7 +4,7 @@
             manual roster, storage guard
 ========================================= */
 
-const TBA_API_KEY = "86liJtIJ8jdGYlNIhrV8fAI1QjA3xY5fCy4friXBmvCdJLFy9vvZiHBnZaf0Op7v";
+const TBA_API_KEY = "C5Jcj7IYgrD4YYv1FpWUq0zsc09a7i0cNQ4mqWhWLoQlXbfSp8SQAuYAxZn3DRqi";
 
 // ── State ──────────────────────────────────────────────────────────────────
 let EVENT_KEY   = localStorage.getItem('TBA_LAST_EVENT') || "2026cmptx";
