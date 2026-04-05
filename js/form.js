@@ -29,6 +29,7 @@ function toggleFullScreen() {
 function openSettings() {
     renderManualRosterList();
     renderAssignmentList();
+    refreshAssignmentTeamSelect();
     updateStorageBar();
     document.getElementById('settingsPanel').style.display = 'flex';
 }
@@ -36,27 +37,51 @@ function closeSettings() {
     document.getElementById('settingsPanel').style.display = 'none';
 }
 
-// ── Scouter Assignments ────────────────────────────────────────────────────
-const ASSIGNMENTS_KEY = 'SCOUTER_ASSIGNMENTS_V1';
+// ── Scouter Assignments (team-picker, not range) ───────────────────────────
+const ASSIGNMENTS_KEY = 'SCOUTER_ASSIGNMENTS_V2';
 
 function getAssignments() {
     try { return JSON.parse(localStorage.getItem(ASSIGNMENTS_KEY) || '[]'); } catch(e) { return []; }
 }
 
+// Build the multi-select of available teams (sorted numerically)
+function refreshAssignmentTeamSelect() {
+    const sel = document.getElementById('assignTeamSelect');
+    if (!sel) return;
+    const assigned = new Set(getAssignments().flatMap(a => a.teams || []));
+    const teams = Object.keys(TEAM_LIST).map(Number).sort((a, b) => a - b);
+    sel.innerHTML = teams.map(num => {
+        const name = TEAM_LIST[num]?.name || '';
+        const alr  = assigned.has(num) ? ' (assigned)' : '';
+        return `<option value="${num}">${num} — ${name}${alr}</option>`;
+    }).join('');
+    if (teams.length === 0) {
+        sel.innerHTML = '<option value="" disabled>No teams loaded yet</option>';
+    }
+}
+
 function addAssignment() {
     const scouter = document.getElementById('assignScouter').value;
-    const from    = parseInt(document.getElementById('assignFrom').value);
-    const to      = parseInt(document.getElementById('assignTo').value);
-    if (!scouter || isNaN(from) || isNaN(to) || from > to) {
-        alert('Please fill in all fields. "From" must be ≤ "To".'); return;
-    }
+    const sel     = document.getElementById('assignTeamSelect');
+    if (!scouter) { alert('Please select a scouter pair.'); return; }
+    const selected = Array.from(sel.selectedOptions).map(o => parseInt(o.value)).filter(Boolean);
+    if (selected.length === 0) { alert('Please select at least one team.'); return; }
+
     const list = getAssignments();
-    list.push({ scouter, from, to });
+    // Merge into existing entry for same scouter, or create new
+    const existing = list.find(a => a.scouter === scouter);
+    if (existing) {
+        const merged = Array.from(new Set([...existing.teams, ...selected])).sort((a, b) => a - b);
+        existing.teams = merged;
+    } else {
+        list.push({ scouter, teams: selected.sort((a, b) => a - b) });
+    }
     safeLocalStorageSet(ASSIGNMENTS_KEY, JSON.stringify(list));
-    document.getElementById('assignScouter').value = '';
-    document.getElementById('assignFrom').value    = '';
-    document.getElementById('assignTo').value      = '';
+
+    // Deselect
+    Array.from(sel.options).forEach(o => o.selected = false);
     renderAssignmentList();
+    refreshAssignmentTeamSelect();
 }
 
 function removeAssignment(index) {
@@ -64,6 +89,18 @@ function removeAssignment(index) {
     list.splice(index, 1);
     safeLocalStorageSet(ASSIGNMENTS_KEY, JSON.stringify(list));
     renderAssignmentList();
+    refreshAssignmentTeamSelect();
+}
+
+function removeTeamFromAssignment(scouterName, teamNum) {
+    const list = getAssignments();
+    const entry = list.find(a => a.scouter === scouterName);
+    if (!entry) return;
+    entry.teams = entry.teams.filter(t => t !== teamNum);
+    if (entry.teams.length === 0) list.splice(list.indexOf(entry), 1);
+    safeLocalStorageSet(ASSIGNMENTS_KEY, JSON.stringify(list));
+    renderAssignmentList();
+    refreshAssignmentTeamSelect();
 }
 
 function renderAssignmentList() {
@@ -74,129 +111,40 @@ function renderAssignmentList() {
         container.innerHTML = `<div style="color:var(--text-secondary);font-size:0.8rem;">No assignments yet.</div>`;
         return;
     }
-    container.innerHTML = list.map((a, i) => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #222;gap:8px;">
-            <span style="color:var(--accent);font-size:0.8rem;flex:1;">${a.scouter}</span>
-            <span style="color:var(--text-secondary);font-size:0.78rem;">#${a.from} – #${a.to}</span>
-            <button type="button" onclick="removeAssignment(${i})"
-                style="background:var(--danger);color:white;border:none;border-radius:6px;padding:3px 8px;font-size:0.75rem;cursor:pointer;">✕</button>
-        </div>
-    `).join('');
+    container.innerHTML = list.map((a, i) => {
+        const chips = (a.teams || []).map(t =>
+            `<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(212,175,55,0.15);border:1px solid var(--border);border-radius:6px;padding:2px 7px;font-size:0.72rem;color:var(--accent);cursor:pointer;margin:2px;" onclick="removeTeamFromAssignment('${a.scouter.replace(/'/g,"\\'")}',${t})" title="Remove ${t}">${t} ✕</span>`
+        ).join('');
+        return `
+            <div style="padding:8px 0;border-bottom:1px solid #222;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                    <span style="color:var(--accent);font-size:0.8rem;font-weight:700;">${a.scouter}</span>
+                    <button type="button" onclick="removeAssignment(${i})"
+                        style="background:var(--danger);color:white;border:none;border-radius:6px;padding:3px 8px;font-size:0.75rem;cursor:pointer;">Remove All</button>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;">${chips || '<span style="color:var(--text-secondary);font-size:0.78rem;">No teams</span>'}</div>
+            </div>
+        `;
+    }).join('');
 }
 
 function updateAssignmentHint() {
-    const scouter  = document.getElementById('scouterName').value;
-    const hint     = document.getElementById('assignmentHint');
+    const scouter = document.getElementById('scouterName').value;
+    const hint    = document.getElementById('assignmentHint');
+    const teamNum = parseInt(document.getElementById('teamNum').value);
     if (!scouter || !hint) { if (hint) hint.style.display = 'none'; return; }
     const match = getAssignments().find(a => a.scouter === scouter);
-    if (match) {
-        hint.textContent    = `📋 Your assignment: Teams #${match.from} – #${match.to}`;
-        hint.style.display  = 'block';
+    if (match && match.teams?.length > 0) {
+        const isAssigned = match.teams.includes(teamNum);
+        const teamListStr = match.teams.join(', ');
+        hint.innerHTML  = `📋 Your teams: <strong>${teamListStr}</strong>${isAssigned ? ' ✓ (this team is yours)' : ''}`;
+        hint.style.display = 'block';
     } else {
-        hint.style.display  = 'none';
+        hint.style.display = 'none';
     }
 }
 
 document.getElementById('scouterName').addEventListener('change', updateAssignmentHint);
-
-// ── Pit Map ────────────────────────────────────────────────────────────────
-const PIT_PINS_KEY = 'PIT_MAP_PINS_V1';
-let pitPinMode     = false;
-
-function getPitPins() {
-    try { return JSON.parse(localStorage.getItem(PIT_PINS_KEY) || '[]'); } catch(e) { return []; }
-}
-function savePitPins(pins) {
-    safeLocalStorageSet(PIT_PINS_KEY, JSON.stringify(pins));
-}
-
-function openPitMap() {
-    document.getElementById('pitMapModal').style.display = 'flex';
-    setTimeout(initPitMapCanvas, 50);
-}
-function closePitMap() {
-    document.getElementById('pitMapModal').style.display = 'none';
-    pitPinMode = false;
-    updatePinModeBtn();
-}
-
-function togglePinMode() {
-    pitPinMode = !pitPinMode;
-    updatePinModeBtn();
-}
-function updatePinModeBtn() {
-    const btn = document.getElementById('pinModeBtn');
-    if (!btn) return;
-    btn.textContent    = pitPinMode ? '📍 Pin Mode: ON' : '📍 Pin Mode: OFF';
-    btn.style.background = pitPinMode ? 'var(--accent)' : '';
-    btn.style.color      = pitPinMode ? '#000' : '';
-}
-
-function clearPitPins() {
-    if (!confirm('Clear all pit pins?')) return;
-    savePitPins([]);
-    renderPitPins();
-}
-
-function initPitMapCanvas() {
-    const container = document.getElementById('pitMapContainer');
-    const canvas    = document.getElementById('pitMapCanvas');
-    if (!container || !canvas) return;
-    canvas.width  = container.clientWidth;
-    canvas.height = container.clientHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Draw a simple grid background to represent pit rows
-    ctx.strokeStyle = 'rgba(212,175,55,0.15)';
-    ctx.lineWidth   = 1;
-    for (let x = 0; x < canvas.width; x += 40)  { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
-    for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
-    ctx.strokeStyle = 'rgba(212,175,55,0.4)';
-    ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
-    renderPitPins();
-}
-
-function renderPitPins() {
-    const container   = document.getElementById('pitMapContainer');
-    const pinsWrapper = document.getElementById('pitMapPins');
-    if (!pinsWrapper || !container) return;
-    const pins = getPitPins();
-    pinsWrapper.innerHTML = pins.map((p, i) => `
-        <div class="pit-pin" style="left:${p.xPct}%;top:${p.yPct}%;"
-            onclick="removePitPin(${i})" title="Team ${p.teamNum} — click to remove">
-            <div class="pit-pin-dot"></div>
-            <div class="pit-pin-label">${p.teamNum}</div>
-        </div>
-    `).join('');
-}
-
-document.getElementById('pitMapContainer').addEventListener('click', function(e) {
-    if (!pitPinMode) return;
-    const teamNum = document.getElementById('pitMapTeamInput').value.trim();
-    if (!teamNum) { alert('Enter a team number first.'); return; }
-
-    const rect = this.getBoundingClientRect();
-    const xPct = parseFloat(((e.clientX - rect.left) / rect.width  * 100).toFixed(1));
-    const yPct = parseFloat(((e.clientY - rect.top)  / rect.height * 100).toFixed(1));
-
-    const pins = getPitPins();
-    // Remove existing pin for same team first
-    const filtered = pins.filter(p => p.teamNum !== teamNum);
-    filtered.push({ teamNum, xPct, yPct });
-    savePitPins(filtered);
-    renderPitPins();
-
-    document.getElementById('pitMapTeamInput').value = '';
-    pitPinMode = false;
-    updatePinModeBtn();
-});
-
-function removePitPin(index) {
-    const pins = getPitPins();
-    pins.splice(index, 1);
-    savePitPins(pins);
-    renderPitPins();
-}
 
 // ── Duplicate Modal ────────────────────────────────────────────────────────
 let _duplicateTeamNum = null;
@@ -213,15 +161,14 @@ function checkDuplicate(teamNum) {
     }
 }
 
-// Called when Next is pressed on page 0 — block if duplicate
 function showDuplicateModal(teamNum) {
     const entry = getScoutedEntry(String(teamNum));
-    if (!entry) return false; // not a duplicate, allow proceed
+    if (!entry) return false;
     _duplicateTeamNum = teamNum;
     document.getElementById('duplicateModalBody').textContent =
         `Team ${teamNum} (${entry.teamName}) was already scouted by ${entry.scouter} at ${entry.timestamp}. Do you want to re-scout and overwrite?`;
     document.getElementById('duplicateModal').style.display = 'flex';
-    return true; // is duplicate, block proceed
+    return true;
 }
 
 function dismissDuplicateModal() {
@@ -232,7 +179,6 @@ function dismissDuplicateModal() {
 function proceedDespiteDuplicate() {
     document.getElementById('duplicateModal').style.display = 'none';
     _duplicateTeamNum = null;
-    // Actually navigate now
     _doNavigate(1);
 }
 
@@ -345,8 +291,8 @@ document.getElementById('teamNum').addEventListener('input', function() {
         currentImageFetchController = null;
     }
 
-    // Check duplicate inline hint
     checkDuplicate(num);
+    updateAssignmentHint();
 
     if (tbaStatus === "loaded" || tbaStatus === "empty") {
         if (TEAM_LIST[num]) {
@@ -375,7 +321,6 @@ document.getElementById('teamNum').addEventListener('input', function() {
     updateNavButtons();
 });
 
-// Monitor inputs for live validation
 [
     'scouterName','weight','capacity','preload','autoTotal',
     'climbTime','intakeOtherVal','visOtherVal','visSoftOtherVal',
@@ -476,8 +421,11 @@ function updateNavButtons() {
             errEl.style.display = 'block';
             document.getElementById('preload').classList.add('violation');
             isValid = false;
-        } else if (autoTotal < 0 || autoTotal > 99) {
-            isValid = false;
+        } else if (autoTotal < 0 || autoTotal > 499) {
+            // Updated: max 499 auto balls
+            document.getElementById('err-preload').style.display = 'none';
+            document.getElementById('preload').classList.remove('violation');
+            if (autoTotal < 0 || autoTotal > 499) isValid = false;
         } else {
             errEl.style.display = 'none';
             document.getElementById('preload').classList.remove('violation');
@@ -504,10 +452,9 @@ function updateNavButtons() {
 function navigate(dir) {
     if (dir === 1 && document.getElementById('nextBtn').disabled) return;
 
-    // Duplicate guard on leaving page 0 going forward
     if (dir === 1 && currentPage === 0) {
         const teamNum = document.getElementById('teamNum').value.trim();
-        if (showDuplicateModal(teamNum)) return; // blocked — modal handles proceed
+        if (showDuplicateModal(teamNum)) return;
     }
 
     _doNavigate(dir);
