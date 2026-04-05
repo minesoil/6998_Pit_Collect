@@ -1,32 +1,126 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Unipards 2026 Pit Collect</title>
-
-    <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
-
-    <!-- App Styles -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════
-     HEADER
-═══════════════════════════════════════ -->
+<!-- ═══════════════════════════════════
+     MODALS & PANELS
+═══════════════════════════════════ -->
 
+<!-- Duplicate Team Warning Modal -->
+<div id="duplicateModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-icon">⚠️</div>
+        <h2 class="modal-title">Already Scouted!</h2>
+        <p class="modal-body" id="duplicateModalBody"></p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-back" onclick="dismissDuplicateModal()">Go Back</button>
+            <button type="button" class="btn" style="background:var(--accent);color:#000;" onclick="proceedDespiteDuplicate()">Re-Scout Anyway</button>
+        </div>
+    </div>
+</div>
+
+<!-- Quick-View Modal -->
+<div id="quickViewModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box modal-box--large">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+            <h2 class="modal-title" style="margin:0;" id="quickViewTitle">Team —</h2>
+            <button type="button" class="modal-close-btn" onclick="closeQuickView()">✕</button>
+        </div>
+        <div id="quickViewContent" style="font-size:0.85rem;line-height:1.7;max-height:60vh;overflow-y:auto;"></div>
+        <div style="margin-top:15px;">
+            <button type="button" class="btn btn-next" style="font-size:0.85rem;padding:12px;width:100%;" onclick="editFromQuickView()">✏️ Edit This Entry</button>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Panel -->
+<div id="settingsPanel" class="modal-overlay" style="display:none;">
+    <div class="modal-box modal-box--large">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h2 class="modal-title" style="margin:0;">⚙️ Settings</h2>
+            <button type="button" class="modal-close-btn" onclick="closeSettings()">✕</button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Manual Team Roster (TBA Fallback)</div>
+            <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:10px;">Add teams manually when TBA is offline. Merges with TBA list.</p>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+                <input type="number" id="manualTeamNum"  placeholder="Team #"   style="flex:1;">
+                <input type="text"   id="manualTeamName" placeholder="Nickname" style="flex:2;">
+            </div>
+            <button type="button" class="btn btn-next" style="padding:10px;font-size:0.8rem;width:100%;" onclick="addManualTeam()">+ Add Team</button>
+            <div id="manualRosterList" style="margin-top:12px;max-height:160px;overflow-y:auto;"></div>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Scouter Assignments</div>
+            <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:10px;">Assign team number ranges to each scouter pair.</p>
+            <div id="assignmentList" style="margin-bottom:10px;"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <select id="assignScouter" style="flex:2;min-width:120px;">
+                    <option value="">Select scouter...</option>
+                    <option value="黄浩倫 and 李苡安">黄浩倫 and 李苡安</option>
+                    <option value="戴均翰 and Orson">戴均翰 and Orson</option>
+                    <option value="黃柏嘉 and Daniel">黃柏嘉 and Daniel</option>
+                    <option value="郭耘睿 and Justin">郭耘睿 and Justin</option>
+                    <option value="裴敬庭 and 李承峰">裴敬庭 and 李承峰</option>
+                </select>
+                <input type="number" id="assignFrom" placeholder="From #" style="flex:1;min-width:60px;">
+                <input type="number" id="assignTo"   placeholder="To #"   style="flex:1;min-width:60px;">
+            </div>
+            <button type="button" class="btn btn-next" style="padding:10px;font-size:0.8rem;width:100%;margin-top:8px;" onclick="addAssignment()">+ Add Assignment</button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Storage Usage</div>
+            <div id="storageBar" style="margin-top:8px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Pit Map Modal -->
+<div id="pitMapModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box modal-box--large">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h2 class="modal-title" style="margin:0;">🗺️ Pit Map</h2>
+            <button type="button" class="modal-close-btn" onclick="closePitMap()">✕</button>
+        </div>
+        <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:10px;">
+            Enter a team number, then tap the map to drop their pin.
+        </p>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <input type="number" id="pitMapTeamInput" placeholder="Team # to pin" style="flex:1;">
+            <button type="button" class="btn btn-next" style="padding:10px;font-size:0.8rem;flex:0 0 auto;" id="pinModeBtn" onclick="togglePinMode()">📍 Pin Mode: OFF</button>
+            <button type="button" class="btn btn-back" style="padding:10px;font-size:0.8rem;flex:0 0 auto;" onclick="clearPitPins()">Clear</button>
+        </div>
+        <div id="pitMapContainer">
+            <canvas id="pitMapCanvas"></canvas>
+            <div id="pitMapPins"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     HEADER
+═══════════════════════════════════ -->
 <header>
     <div class="header-top">
         <div class="header-left">
             <div class="clock-display" id="liveClock">--:--:--</div>
         </div>
-        <div class="header-center">
+        <div class="header-center" style="display:flex;gap:6px;justify-content:center;">
             <button type="button" class="fs-btn" onclick="toggleFullScreen()">⛶ FS</button>
+            <button type="button" class="fs-btn" onclick="openSettings()">⚙️</button>
+            <button type="button" class="fs-btn" onclick="openPitMap()">🗺️</button>
         </div>
         <div class="header-right">
             <div class="counter-badge" id="robotCounter">ROBOTS: 0</div>
@@ -35,13 +129,11 @@
     <h1>Unipards 2026 Pit Collect</h1>
 </header>
 
-<!-- ═══════════════════════════════════════
+<!-- ═══════════════════════════════════
      FORM PAGES
-═══════════════════════════════════════ -->
-
+═══════════════════════════════════ -->
 <div class="container">
 <form id="scoutForm">
-
 
 <!-- ── STEP 1: Identification ── -->
 <div class="page active" id="page0">
@@ -67,29 +159,26 @@
             <option value="裴敬庭 and 李承峰">裴敬庭 and 李承峰</option>
         </select>
         <div class="error-msg" id="err-name">Please select a name</div>
-        <div class="profanity-alert" id="profanity-name">Please remove inappropriate language.</div>
+        <div id="assignmentHint" class="assignment-hint" style="display:none;"></div>
     </div>
 
     <div class="card">
         <label>Team Number (隊伍編號)</label>
         <input type="number" id="teamNum" placeholder="e.g. 6998">
         <div id="teamNameDisplay" class="team-display">Waiting for event selection...</div>
-
-        <!-- Robot image -->
+        <div id="duplicateHint" class="duplicate-hint" style="display:none;"></div>
         <div id="robotImageContainer">
             <img id="robotImage" alt="Robot Image" crossorigin="anonymous">
         </div>
         <div id="imageLoadingSpinner">⏳ Searching for robot image...</div>
         <div id="imageStatus">No robot image found on TBA (2025/2026)</div>
-
         <div class="error-msg" id="err-team">Not in Official TBA Roster</div>
     </div>
 </div>
 
-<!-- ── STEP 2: Robot Specifications ── -->
+<!-- ── STEP 2 + 3: Robot & Systems ── -->
 <div class="page" id="page1">
     <div class="section-title">Step 2: Robot Specifications</div>
-
     <div class="card">
         <label>Chassis Type (底盤)</label>
         <select id="chassis">
@@ -98,7 +187,6 @@
             <option value="Mecanum">Mecanum</option>
             <option value="Other">Other</option>
         </select>
-
         <br><br>
         <label>Robot Weight (機器人重量)</label>
         <span class="sub-label">Select lbs or kg</span>
@@ -110,15 +198,12 @@
             </select>
         </div>
         <div class="error-msg" id="err-weight">Max Weight is 135 lbs (61.2 kg)</div>
-
         <br><br>
         <label>Max Fuel Capacity (最高容量)</label>
         <input type="number" id="capacity" placeholder="e.g. 1" min="1">
     </div>
 
-    <!-- ── STEP 3: Systems ── -->
     <div class="section-title">Step 3: Systems</div>
-
     <div class="card">
         <label>Intake Mechanism (Intake)</label>
         <div class="grid-select">
@@ -131,7 +216,6 @@
             <input type="text" id="intakeOtherVal" placeholder="Describe intake type...">
         </div>
     </div>
-
     <div class="card">
         <label>Vision Hardware (視覺硬體)</label>
         <div class="grid-select">
@@ -143,7 +227,6 @@
             <input type="text" id="visOtherVal" placeholder="Describe camera/vision...">
         </div>
     </div>
-
     <div class="card">
         <label>Vision Capabilities (相機功能)</label>
         <div class="grid-select">
@@ -155,7 +238,6 @@
             <input type="text" id="visSoftOtherVal" placeholder="Describe vision capabilities...">
         </div>
     </div>
-
     <div class="card">
         <label>Shooting Capabilities (射球能力)</label>
         <div class="grid-select">
@@ -165,60 +247,33 @@
             <label class="toggle-btn"><input type="checkbox" name="shoot" value="Pass">傳球<br><span style="font-size:0.7em">(Passing)</span></label>
         </div>
     </div>
-
     <div class="card">
         <label>Turrets (砲台)</label>
-
         <span class="sub-label">Turret Type (砲台類型)</span>
         <div class="grid-select" style="grid-template-columns: repeat(3, 1fr);">
-            <label class="toggle-btn">
-                <input type="radio" name="turretType" value="Single" onchange="checkTurretType()">
-                單旋轉炮台<br><span style="font-size:0.7em">(Single)</span>
-            </label>
-            <label class="toggle-btn">
-                <input type="radio" name="turretType" value="Double" onchange="checkTurretType()">
-                双旋轉炮台<br><span style="font-size:0.7em">(Double)</span>
-            </label>
-            <label class="toggle-btn">
-                <input type="radio" name="turretType" value="Wide Shooter" onchange="checkTurretType()">
-                寬炮台<br><span style="font-size:0.7em">(Wide Shooter)</span>
-            </label>
+            <label class="toggle-btn"><input type="radio" name="turretType" value="Single" onchange="checkTurretType()">單旋轉炮台<br><span style="font-size:0.7em">(Single)</span></label>
+            <label class="toggle-btn"><input type="radio" name="turretType" value="Double" onchange="checkTurretType()">双旋轉炮台<br><span style="font-size:0.7em">(Double)</span></label>
+            <label class="toggle-btn"><input type="radio" name="turretType" value="Wide Shooter" onchange="checkTurretType()">寬炮台<br><span style="font-size:0.7em">(Wide Shooter)</span></label>
         </div>
-
-        <div id="degree-section" style="margin-top:15px; display:none;">
+        <div id="degree-section" style="margin-top:15px;display:none;">
             <span class="sub-label">可調仰角? (Can Change Degree?)</span>
             <div class="grid-select" style="grid-template-columns: repeat(2, 1fr);">
-                <label class="toggle-btn">
-                    <input type="radio" name="canChangeDegree" value="Yes" id="canDegYes" onchange="toggleDegreeOptions()">
-                    可以<br><span style="font-size:0.7em">(Yes)</span>
-                </label>
-                <label class="toggle-btn">
-                    <input type="radio" name="canChangeDegree" value="No" id="canDegNo" onchange="toggleDegreeOptions()">
-                    不行<br><span style="font-size:0.7em">(No)</span>
-                </label>
+                <label class="toggle-btn"><input type="radio" name="canChangeDegree" value="Yes" id="canDegYes" onchange="toggleDegreeOptions()">可以<br><span style="font-size:0.7em">(Yes)</span></label>
+                <label class="toggle-btn"><input type="radio" name="canChangeDegree" value="No"  id="canDegNo"  onchange="toggleDegreeOptions()">不行<br><span style="font-size:0.7em">(No)</span></label>
             </div>
         </div>
-
         <div class="conditional-input" id="degreeOptionsBox" style="display:none;">
-            <span class="sub-label">自由度方向 (Degree of Freedom — select all that apply)</span>
+            <span class="sub-label">自由度方向 (Degree of Freedom)</span>
             <div class="grid-select" style="grid-template-columns: repeat(2, 1fr);">
-                <label class="toggle-btn">
-                    <input type="checkbox" name="turretAxis" value="Yaw" id="yawTrigger" onchange="toggleAxisInput('yaw')">
-                    偏轉自由度<br><span style="font-size:0.7em">(Yaw / Horizontal)</span>
-                </label>
-                <label class="toggle-btn">
-                    <input type="checkbox" name="turretAxis" value="Pitch" id="pitchTrigger" onchange="toggleAxisInput('pitch')">
-                    俯仰自由度<br><span style="font-size:0.7em">(Pitch / Vertical)</span>
-                </label>
+                <label class="toggle-btn"><input type="checkbox" name="turretAxis" value="Yaw"   id="yawTrigger"   onchange="toggleAxisInput('yaw')">偏轉自由度<br><span style="font-size:0.7em">(Yaw)</span></label>
+                <label class="toggle-btn"><input type="checkbox" name="turretAxis" value="Pitch" id="pitchTrigger" onchange="toggleAxisInput('pitch')">俯仰自由度<br><span style="font-size:0.7em">(Pitch)</span></label>
             </div>
-
             <div class="conditional-input" id="yawFreedomBox">
-                <span class="sub-label">偏轉角度範圍 (Yaw Degree of Freedom)</span>
+                <span class="sub-label">偏轉角度範圍 (Yaw DOF)</span>
                 <input type="number" id="yawFreedomVal" placeholder="e.g. 360">
             </div>
-
             <div class="conditional-input" id="pitchFreedomBox">
-                <span class="sub-label">俯仰角度範圍 (Pitch Degree of Freedom)</span>
+                <span class="sub-label">俯仰角度範圍 (Pitch DOF)</span>
                 <input type="number" id="pitchFreedomVal" placeholder="e.g. 45">
             </div>
         </div>
@@ -228,7 +283,6 @@
 <!-- ── STEP 4: Autonomous ── -->
 <div class="page" id="page2">
     <div class="section-title">Step 4: Autonomous</div>
-
     <div class="card">
         <label>Starting Location (位子)</label>
         <div class="grid-select">
@@ -242,7 +296,6 @@
         <input type="number" id="preload" placeholder="0" min="0" max="8">
         <div class="error-msg" id="err-preload">Max Preload is 8</div>
     </div>
-
     <div class="card">
         <label>Auto Intake Source (自動吸球來源)</label>
         <div class="grid-select">
@@ -251,7 +304,6 @@
             <label class="toggle-btn"><input type="checkbox" name="autoIntakePos" value="Depot">Depot</label>
         </div>
     </div>
-
     <div class="card">
         <label>Auto Hang Location (自動掛 L1 位置)</label>
         <div class="grid-select" style="grid-template-columns:repeat(3,1fr);">
@@ -264,20 +316,17 @@
             <label class="toggle-btn"><input type="checkbox" name="autoHangPos" value="FarRight">Far Right Side (右側)</label>
         </div>
     </div>
-
     <div class="card">
         <label>Total Auto Fuel (Auto 總共顆數)</label>
         <span class="sub-label">Scored during Auto</span>
         <input type="number" id="autoTotal" placeholder="0" min="0" max="99">
     </div>
-
     <div class="card">
         <label class="toggle-btn" style="width:100%;">
             <input type="checkbox" id="crossMid">
             Cross Midfield (會不會過中場)
         </label>
     </div>
-
     <div class="card">
         <label>Terrain Navigation (地形)</label>
         <div class="grid-select">
@@ -290,7 +339,6 @@
 <!-- ── STEP 5: Teleop & Endgame ── -->
 <div class="page" id="page3">
     <div class="section-title">Step 5: Teleop & Endgame</div>
-
     <div class="card">
         <label>Climb Capability (吊掛能力)</label>
         <div class="grid-select">
@@ -299,7 +347,6 @@
             <label class="toggle-btn"><input type="checkbox" name="climbLvl" value="L3">L3</label>
         </div>
     </div>
-
     <div class="card">
         <label>Climb Position (吊掛位子)</label>
         <div class="grid-select" style="grid-template-columns:repeat(3,1fr);">
@@ -312,25 +359,24 @@
             <label class="toggle-btn"><input type="checkbox" name="climbPos" value="FarRight">Far Right Side (右側)</label>
         </div>
     </div>
-
-    <!-- Climb Time — hidden until a climb level is checked -->
     <div class="card" id="climbTimeCard" style="display:none;">
         <label>Climb Time (吊掛時間)</label>
         <span class="sub-label">Estimated seconds to climb</span>
         <input type="number" id="climbTime" placeholder="e.g. 5" min="0">
     </div>
-
     <div class="card">
         <label style="display:flex;align-items:center;gap:10px;">
             <input type="checkbox" id="photosTaken" style="width:25px;height:25px;accent-color:var(--accent);">
             <span>Photos Taken? (照片全部已拍)</span>
         </label>
     </div>
-
     <div class="card">
         <label>General Notes (備註)</label>
-        <textarea id="notes" rows="4" placeholder="Driver skill, defense, reliability notes..."></textarea>
-        <div class="profanity-alert" id="profanity-notes">Please remove inappropriate language.</div>
+        <textarea id="notes" rows="4" placeholder="Driver skill, defense, reliability notes..." maxlength="300"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px;">
+            <div class="profanity-alert" id="profanity-notes" style="display:none;margin:0;flex:1;">Please remove inappropriate language.</div>
+            <div id="notesCounter" style="font-size:0.72rem;color:var(--text-secondary);text-align:right;margin-left:auto;">0 / 300</div>
+        </div>
     </div>
 </div>
 
@@ -340,36 +386,35 @@
     <div class="card" style="text-align:center;">
         <h2 style="color:var(--accent);margin-bottom:10px;">Ready to Generate</h2>
         <div id="reviewText" style="text-align:left;background:#000;padding:15px;border-radius:10px;margin-bottom:20px;font-size:0.9rem;line-height:1.6;color:#ccc;"></div>
-
         <div id="qrHeader" style="display:none;margin-bottom:15px;">
             <div style="color:var(--text-secondary);font-size:0.9rem;text-transform:uppercase;letter-spacing:1px;">Scouting Team</div>
             <div id="qrTeamText" style="color:var(--accent);font-size:2.5rem;font-weight:800;line-height:1.2;"></div>
             <div id="qrTeamName" style="color:white;font-size:1.2rem;margin-top:5px;"></div>
         </div>
-
         <div id="qrcode"></div>
-
         <button type="button" class="btn btn-next" id="generateBtn" onclick="generateQR()">Generate Data QR</button>
         <br><br>
         <button type="button" class="btn btn-next" id="goToPathBtn" onclick="navigate(1)"
             style="display:none;background:#2a2a2a;border:1px solid var(--accent);color:var(--accent);">
-            Next: Draw Auto Path
+            Next: Draw Auto Path →
         </button>
         <br><br>
         <button type="button" class="btn" style="background:var(--danger);color:white;font-size:0.8rem;padding:10px;" onclick="resetForm()">Reset Form</button>
     </div>
 
-    <!-- ── Teams Scouted This Event ── -->
-    <div class="section-title" style="margin-top:30px;">Teams Scouted This Event</div>
+    <!-- Unscouted Teams -->
+    <div class="section-title" style="margin-top:30px;">Teams Not Yet Scouted</div>
+    <div class="card" style="padding:15px;">
+        <div id="unscoutedListContainer"></div>
+    </div>
+
+    <!-- Scouted Teams -->
+    <div class="section-title" style="margin-top:20px;">Teams Scouted This Event</div>
     <div class="card" style="padding:15px;">
         <div id="scoutedListContainer"></div>
         <div style="display:flex;gap:10px;margin-top:15px;">
-            <button type="button" class="btn btn-next" style="font-size:0.8rem;padding:12px;" onclick="exportCSV()">
-                ⬇ Export CSV
-            </button>
-            <button type="button" class="btn btn-back" style="font-size:0.8rem;padding:12px;flex:0 0 auto;" onclick="clearScoutedTeams()">
-                🗑 Clear All
-            </button>
+            <button type="button" class="btn btn-next" style="font-size:0.8rem;padding:12px;" onclick="exportCSV()">⬇ Export CSV</button>
+            <button type="button" class="btn btn-back" style="font-size:0.8rem;padding:12px;flex:0 0 auto;" onclick="clearScoutedTeams()">🗑 Clear All</button>
         </div>
     </div>
 </div>
@@ -382,62 +427,40 @@
             Draw the robot's autonomous path or tap a dot for teams with no auto<br>
             <span style="font-size:0.8rem;color:var(--accent);">Map: FRC 2026 Rebuilt Field</span>
         </p>
-
         <div id="drawingModeIndicator" style="background:rgba(212,175,55,0.1);border:1px solid var(--accent);padding:8px;border-radius:8px;margin-bottom:15px;color:var(--accent);font-size:0.85rem;font-weight:600;">
             Mode: <span id="modeText">Drawing Line</span>
         </div>
-
         <div class="drawing-controls" style="justify-content:center;flex-wrap:wrap;">
-            <button type="button" class="btn" style="background:#333;color:white;padding:10px;flex:0 1 auto;" onclick="toggleDrawMode()">
-                <span id="toggleModeBtn">📍 Switch to Dot</span>
-            </button>
+            <button type="button" class="btn" style="background:#333;color:white;padding:10px;flex:0 1 auto;" onclick="toggleDrawMode()"><span id="toggleModeBtn">📍 Switch to Dot</span></button>
             <button type="button" class="btn" style="background:#333;color:white;padding:10px;flex:0 1 auto;" onclick="clearCanvas()">Clear</button>
             <button type="button" class="btn" style="background:#333;color:white;padding:10px;flex:0 1 auto;" onclick="undoLastStroke()">Undo</button>
         </div>
-
         <div id="fieldContainer">
             <canvas id="fieldCanvas"></canvas>
         </div>
-
         <div id="pathQrHeader" style="display:none;margin-bottom:15px;border-top:1px solid #333;padding-top:15px;">
             <div style="color:var(--text-secondary);font-size:0.9rem;text-transform:uppercase;letter-spacing:1px;">Auto Paths For</div>
             <div id="pathQrTeamText" style="color:var(--accent);font-size:2rem;font-weight:800;"></div>
         </div>
-
         <div id="qrcodePath"></div>
-
         <button type="button" class="btn btn-next" id="generatePathBtn" onclick="generatePathQR()">Generate Path QRs</button>
         <br><br>
         <button type="button" class="btn" style="background:var(--danger);color:white;font-size:0.8rem;padding:10px;" onclick="resetForm()">Finish & Reset</button>
     </div>
 </div>
 
-
 </form>
 </div>
 
-<!-- ═══════════════════════════════════════
-     NAV BAR
-═══════════════════════════════════════ -->
-
+<!-- NAV BAR -->
 <div class="nav-bar">
     <button type="button" class="btn btn-back" id="backBtn" onclick="navigate(-1)">Back</button>
     <button type="button" class="btn btn-next" id="nextBtn" onclick="navigate(1)">Next</button>
 </div>
 
-<!-- ═══════════════════════════════════════
-     APP SCRIPTS
-     Load order matters:
-       1. tba.js    — API state & image fetching
-       2. canvas.js — drawing state (strokes)
-       3. qr.js     — uses strokes + TEAM_LIST
-       4. form.js   — navigation, validation, UI (runs last, inits everything)
-═══════════════════════════════════════ -->
-
 <script src="js/tba.js"></script>
 <script src="js/canvas.js"></script>
 <script src="js/qr.js"></script>
 <script src="js/form.js"></script>
-
 </body>
 </html>
