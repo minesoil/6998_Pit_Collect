@@ -1,36 +1,131 @@
 /* =========================================
    tba.js — The Blue Alliance API Integration
-   Handles: events, team lists, robot images
+   Handles: events, team lists, robot images,
+            manual roster, storage guard
 ========================================= */
 
 const TBA_API_KEY = "86liJtIJ8jdGYlNIhrV8fAI1QjA3xY5fCy4friXBmvCdJLFy9vvZiHBnZaf0Op7v";
 
 // ── State ──────────────────────────────────────────────────────────────────
 let EVENT_KEY   = localStorage.getItem('TBA_LAST_EVENT') || "2026cmptx";
-let EVENTS_DATA = {};   // { "2026key": { name, city, … } }
-let TEAM_LIST   = {};   // { "6998": { name, location } }
+let EVENTS_DATA = {};
+let TEAM_LIST   = {};
 
-// Image cache — only stores confirmed working URLs, never "none"
 let TEAM_IMAGES = JSON.parse(localStorage.getItem('TBA_IMAGES_2026_V5') || '{}');
 
 let tbaStatus = "loading";
 let imageFetchTimeout           = null;
 let currentImageFetchController = null;
 
-// ── Robot Counter (persisted) ──────────────────────────────────────────────
-function getRobotCount() {
-    return parseInt(localStorage.getItem('ROBOT_COUNT') || '0');
+// ── Manual Roster ──────────────────────────────────────────────────────────
+const MANUAL_ROSTER_KEY = 'MANUAL_ROSTER_2026_V1';
+
+function getManualRoster() {
+    try { return JSON.parse(localStorage.getItem(MANUAL_ROSTER_KEY) || '{}'); } catch(e) { return {}; }
 }
+
+function mergeManualRoster() {
+    const manual = getManualRoster();
+    Object.assign(TEAM_LIST, manual);
+}
+
+function addManualTeam() {
+    const num  = document.getElementById('manualTeamNum').value.trim();
+    const name = document.getElementById('manualTeamName').value.trim();
+    if (!num || !name) { alert('Please enter both a team number and nickname.'); return; }
+
+    const roster = getManualRoster();
+    roster[num] = { name, location: 'Manual Entry', manual: true };
+    safeLocalStorageSet(MANUAL_ROSTER_KEY, JSON.stringify(roster));
+
+    // Immediately merge into live TEAM_LIST
+    TEAM_LIST[num] = roster[num];
+
+    document.getElementById('manualTeamNum').value  = '';
+    document.getElementById('manualTeamName').value = '';
+    renderManualRosterList();
+    updateStorageBar();
+
+    // Re-trigger team input in case user just entered this number
+    document.getElementById('teamNum').dispatchEvent(new Event('input'));
+}
+
+function removeManualTeam(num) {
+    const roster = getManualRoster();
+    delete roster[num];
+    safeLocalStorageSet(MANUAL_ROSTER_KEY, JSON.stringify(roster));
+    // Remove from live list only if it was manual (don't remove TBA entries)
+    if (TEAM_LIST[num]?.manual) delete TEAM_LIST[num];
+    renderManualRosterList();
+    document.getElementById('teamNum').dispatchEvent(new Event('input'));
+}
+
+function renderManualRosterList() {
+    const container = document.getElementById('manualRosterList');
+    if (!container) return;
+    const roster = getManualRoster();
+    const entries = Object.entries(roster);
+    if (entries.length === 0) {
+        container.innerHTML = `<div style="color:var(--text-secondary);font-size:0.8rem;text-align:center;padding:8px;">No manual teams added.</div>`;
+        return;
+    }
+    container.innerHTML = entries.map(([num, t]) => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #222;">
+            <span style="color:var(--accent);font-weight:700;min-width:50px;">${num}</span>
+            <span style="flex:1;color:var(--text-main);font-size:0.85rem;">${t.name}</span>
+            <button type="button" onclick="removeManualTeam('${num}')"
+                style="background:var(--danger);color:white;border:none;border-radius:6px;padding:3px 8px;font-size:0.75rem;cursor:pointer;">✕</button>
+        </div>
+    `).join('');
+}
+
+// ── Storage Guard ──────────────────────────────────────────────────────────
+function getStorageUsageKB() {
+    let total = 0;
+    for (const key in localStorage) {
+        if (!localStorage.hasOwnProperty(key)) continue;
+        total += (localStorage[key].length + key.length) * 2; // UTF-16
+    }
+    return Math.round(total / 1024);
+}
+
+function safeLocalStorageSet(key, value) {
+    try {
+        localStorage.setItem(key, value);
+        return true;
+    } catch(e) {
+        console.warn('localStorage full:', e);
+        alert('⚠️ Storage is nearly full! Export your CSV data now, then clear old entries in Settings.');
+        return false;
+    }
+}
+
+function updateStorageBar() {
+    const bar = document.getElementById('storageBar');
+    if (!bar) return;
+    const used    = getStorageUsageKB();
+    const maxKB   = 5120; // 5MB estimate
+    const pct     = Math.min(100, Math.round(used / maxKB * 100));
+    const color   = pct > 80 ? 'var(--danger)' : pct > 60 ? '#ffbb33' : 'var(--success)';
+    bar.innerHTML = `
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-secondary);margin-bottom:5px;">
+            <span>Used: ~${used} KB</span><span>${pct}% of ~5 MB</span>
+        </div>
+        <div style="background:#222;border-radius:6px;height:10px;overflow:hidden;">
+            <div style="width:${pct}%;background:${color};height:100%;border-radius:6px;transition:width 0.3s;"></div>
+        </div>
+        ${pct > 80 ? '<div style="color:var(--danger);font-size:0.75rem;margin-top:6px;">⚠️ Storage nearly full — export CSV and clear data soon.</div>' : ''}
+    `;
+}
+
+// ── Robot Counter (persisted) ──────────────────────────────────────────────
+function getRobotCount() { return parseInt(localStorage.getItem('ROBOT_COUNT') || '0'); }
 function setRobotCount(n) {
     localStorage.setItem('ROBOT_COUNT', n);
     document.getElementById('robotCounter').innerText = `ROBOTS: ${n}`;
 }
-function incrementRobotCount() {
-    setRobotCount(getRobotCount() + 1);
-}
-function initRobotCounter() {
-    document.getElementById('robotCounter').innerText = `ROBOTS: ${getRobotCount()}`;
-}
+function incrementRobotCount() { setRobotCount(getRobotCount() + 1); }
+function initRobotCounter()    { document.getElementById('robotCounter').innerText = `ROBOTS: ${getRobotCount()}`; }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 async function fetchWithTimeout(url, options = {}, timeoutMs = 6000) {
@@ -54,7 +149,6 @@ async function fetchEvents() {
         try { EVENTS_DATA = JSON.parse(cached); } catch(e) {}
         updateEventStatusDisplay();
     }
-
     try {
         if (Object.keys(EVENTS_DATA).length === 0) disp.textContent = "Fetching Event List from TBA...";
         const res = await fetchWithTimeout(
@@ -65,7 +159,7 @@ async function fetchEvents() {
             const data = await res.json();
             EVENTS_DATA = {};
             data.forEach(e => { EVENTS_DATA[e.key] = e; });
-            localStorage.setItem('TBA_EVENTS_2026_V1', JSON.stringify(EVENTS_DATA));
+            safeLocalStorageSet('TBA_EVENTS_2026_V1', JSON.stringify(EVENTS_DATA));
             updateEventStatusDisplay();
         }
     } catch (err) {
@@ -93,17 +187,13 @@ function updateEventStatusDisplay() {
 
 function selectEvent(key) {
     if (key === EVENT_KEY) return;
-
-    // Warn if data has been entered
     const teamNum = document.getElementById('teamNum').value.trim();
     if (teamNum) {
         if (!confirm(`Switching events will clear the current team entry. Continue?`)) return;
     }
-
     EVENT_KEY = key;
-    localStorage.setItem('TBA_LAST_EVENT', EVENT_KEY);
+    safeLocalStorageSet('TBA_LAST_EVENT', EVENT_KEY);
     updateEventStatusDisplay();
-
     TEAM_LIST = {};
     document.getElementById('teamNameDisplay').innerHTML   = "Switching events...";
     document.getElementById('teamNameDisplay').style.background = "rgba(255,255,255,0.05)";
@@ -138,7 +228,6 @@ async function initTBA() {
         const teams = await response.json();
 
         if (teams.length === 0) {
-            // Championship event — fetch from divisions
             const eventRes = await fetchWithTimeout(
                 `https://www.thebluealliance.com/api/v3/event/${EVENT_KEY}`,
                 { headers: { 'X-TBA-Auth-Key': TBA_API_KEY } }
@@ -167,7 +256,7 @@ async function initTBA() {
                 const loc = [t.city, t.state_prov, t.country].filter(x => x?.trim()).join(', ') || "Location Unknown";
                 TEAM_LIST[t.team_number] = { name: t.nickname, location: loc };
             });
-            localStorage.setItem(cacheKey, JSON.stringify(TEAM_LIST));
+            safeLocalStorageSet(cacheKey, JSON.stringify(TEAM_LIST));
             tbaStatus = "loaded";
         } else {
             tbaStatus = "empty";
@@ -176,6 +265,8 @@ async function initTBA() {
         console.warn("TBA Fetch failed:", err);
         if (Object.keys(TEAM_LIST).length === 0) tbaStatus = "error";
     } finally {
+        // Always merge manual roster on top of TBA list
+        mergeManualRoster();
         document.getElementById('teamNum').dispatchEvent(new Event('input'));
     }
 }
@@ -186,11 +277,11 @@ function resetImageUI() {
     const container = document.getElementById('robotImageContainer');
     const statusEl  = document.getElementById('imageStatus');
     const spinnerEl = document.getElementById('imageLoadingSpinner');
-    imgEl.src                = '';
-    imgEl.style.display      = 'none';
-    container.style.display  = 'none';
-    statusEl.style.display   = 'none';
-    spinnerEl.style.display  = 'none';
+    imgEl.src               = '';
+    imgEl.style.display     = 'none';
+    container.style.display = 'none';
+    statusEl.style.display  = 'none';
+    spinnerEl.style.display = 'none';
 }
 
 async function fetchRobotImage(teamNum) {
@@ -200,50 +291,32 @@ async function fetchRobotImage(teamNum) {
     const spinnerEl = document.getElementById('imageLoadingSpinner');
 
     resetImageUI();
-
     if (currentImageFetchController) currentImageFetchController.abort();
     currentImageFetchController = new AbortController();
     const signal = currentImageFetchController.signal;
 
     const cached = TEAM_IMAGES[teamNum];
-    if (cached) {
-        tryLoadImage(imgEl, container, statusEl, cached, teamNum);
-        return;
-    }
+    if (cached) { tryLoadImage(imgEl, container, statusEl, cached, teamNum); return; }
 
     spinnerEl.style.display = 'block';
 
     try {
         const [media2026, media2025] = await Promise.all([
-            fetch(
-                `https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/2026`,
-                { headers: { 'X-TBA-Auth-Key': TBA_API_KEY }, signal }
-            ).then(r => r.ok ? r.json() : []).catch(() => []),
-
-            fetch(
-                `https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/2025`,
-                { headers: { 'X-TBA-Auth-Key': TBA_API_KEY }, signal }
-            ).then(r => r.ok ? r.json() : []).catch(() => [])
+            fetch(`https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/2026`,
+                { headers: { 'X-TBA-Auth-Key': TBA_API_KEY }, signal })
+                .then(r => r.ok ? r.json() : []).catch(() => []),
+            fetch(`https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/2025`,
+                { headers: { 'X-TBA-Auth-Key': TBA_API_KEY }, signal })
+                .then(r => r.ok ? r.json() : []).catch(() => [])
         ]);
-
         spinnerEl.style.display = 'none';
         if (signal.aborted) return;
-
         const candidateUrls = extractImageUrls(media2026).concat(extractImageUrls(media2025));
-
-        if (candidateUrls.length === 0) {
-            statusEl.style.display = 'block';
-            return;
-        }
-
+        if (candidateUrls.length === 0) { statusEl.style.display = 'block'; return; }
         tryNextCandidate(imgEl, container, statusEl, candidateUrls, 0, teamNum);
-
     } catch (err) {
         spinnerEl.style.display = 'none';
-        if (err.name !== 'AbortError') {
-            console.warn('Image fetch error for team', teamNum, err);
-            statusEl.style.display = 'block';
-        }
+        if (err.name !== 'AbortError') { statusEl.style.display = 'block'; }
     }
 }
 
@@ -255,54 +328,36 @@ function extractImageUrls(mediaArr) {
             if (item.view_url)   urls.push(item.view_url);
             if (item.direct_url) urls.push(item.direct_url);
         }
-        if (item.direct_url && /\.(jpe?g|png|gif|webp)/i.test(item.direct_url)) {
+        if (item.direct_url && /\.(jpe?g|png|gif|webp)/i.test(item.direct_url))
             if (!urls.includes(item.direct_url)) urls.push(item.direct_url);
-        }
     }
     return urls;
 }
 
 function tryNextCandidate(imgEl, container, statusEl, urls, index, teamNum) {
-    if (index >= urls.length) {
-        statusEl.style.display = 'block';
-        return;
-    }
-
-    const url     = urls[index];
-    const testImg = new Image();
-
+    if (index >= urls.length) { statusEl.style.display = 'block'; return; }
+    const url = urls[index], testImg = new Image();
     testImg.onload = function() {
         TEAM_IMAGES[teamNum] = url;
-        localStorage.setItem('TBA_IMAGES_2026_V5', JSON.stringify(TEAM_IMAGES));
-        imgEl.src               = url;
-        imgEl.style.display     = 'block';
-        container.style.display = 'block';
-        statusEl.style.display  = 'none';
+        safeLocalStorageSet('TBA_IMAGES_2026_V5', JSON.stringify(TEAM_IMAGES));
+        imgEl.src = url; imgEl.style.display = 'block';
+        container.style.display = 'block'; statusEl.style.display = 'none';
     };
-
-    testImg.onerror = function() {
-        tryNextCandidate(imgEl, container, statusEl, urls, index + 1, teamNum);
-    };
-
+    testImg.onerror = () => tryNextCandidate(imgEl, container, statusEl, urls, index + 1, teamNum);
     testImg.src = url;
 }
 
 function tryLoadImage(imgEl, container, statusEl, url, teamNum) {
     const testImg = new Image();
-
     testImg.onload = function() {
-        imgEl.src               = url;
-        imgEl.style.display     = 'block';
-        container.style.display = 'block';
-        statusEl.style.display  = 'none';
+        imgEl.src = url; imgEl.style.display = 'block';
+        container.style.display = 'block'; statusEl.style.display = 'none';
     };
-
     testImg.onerror = function() {
         delete TEAM_IMAGES[teamNum];
-        localStorage.setItem('TBA_IMAGES_2026_V5', JSON.stringify(TEAM_IMAGES));
+        safeLocalStorageSet('TBA_IMAGES_2026_V5', JSON.stringify(TEAM_IMAGES));
         fetchRobotImage(teamNum);
     };
-
     testImg.src = url;
 }
 
