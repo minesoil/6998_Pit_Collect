@@ -190,7 +190,7 @@ function formatEventType(typeNum) {
     const types = {
         0: 'Regional', 1: 'District', 2: 'District CMP', 3: 'Championship Division',
         4: 'Championship Finals', 5: 'District CMP Division', 6: 'FOC',
-        7: 'Remote', 99: 'Offseason', 100: 'Preseason', -1: 'Unlabeled'
+        7: 'Remote', 99: 'Offseason', 100: 'Preseason', [-1]: 'Unlabeled'
     };
     return types[typeNum] ?? 'Event';
 }
