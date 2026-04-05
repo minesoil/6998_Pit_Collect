@@ -5,10 +5,10 @@
 const canvas = document.getElementById('fieldCanvas');
 const ctx    = canvas.getContext('2d');
 
-let isDrawing    = false;
-let strokes      = [];
+let isDrawing     = false;
+let strokes       = [];
 let currentStroke = [];
-let drawingMode  = 'line';
+let drawingMode   = 'line';
 
 const PATH_COLORS = ["#00C851", "#33b5e5", "#ff4444", "#ffbb33", "#aa66cc"];
 
@@ -24,8 +24,12 @@ function toggleDrawMode() {
 // ── Canvas Init ────────────────────────────────────────────────────────────
 function initCanvas() {
     const container = document.getElementById('fieldContainer');
+    // Save strokes before resize wipes the canvas
+    const savedStrokes = strokes.slice();
     canvas.width  = container.clientWidth;
     canvas.height = container.clientHeight;
+    // Restore and redraw
+    strokes = savedStrokes;
     redraw();
 }
 
@@ -46,7 +50,7 @@ function redraw() {
             // Single dot
             const x = pctToX(stroke[0].x);
             const y = pctToY(stroke[0].y);
-            ctx.fillStyle   = color;
+            ctx.fillStyle = color;
             ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
             ctx.strokeStyle = 'white'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.stroke();
@@ -82,6 +86,11 @@ function redraw() {
             ctx.beginPath();
             ctx.arc(pctToX(last.x), pctToY(last.y), 6, 0, Math.PI * 2);
             ctx.fill();
+
+            // Path number label
+            ctx.fillStyle   = "white";
+            ctx.font        = "bold 13px Lexend, sans-serif";
+            ctx.fillText(`#${index + 1}`, pctToX(stroke[0].x) + 9, pctToY(stroke[0].y) - 9);
         }
     });
 
@@ -158,8 +167,8 @@ function toYPct(py) { return parseFloat((py / canvas.height * 100).toFixed(1)); 
 function clearCanvas() {
     strokes = []; currentStroke = [];
     redraw();
-    document.getElementById('qrcodePath').innerHTML     = '';
-    document.getElementById('qrcodePath').style.display = 'none';
+    document.getElementById('qrcodePath').innerHTML      = '';
+    document.getElementById('qrcodePath').style.display  = 'none';
     document.getElementById('pathQrHeader').style.display = 'none';
     const btn     = document.getElementById('generatePathBtn');
     btn.innerText = 'Generate Path QRs';
