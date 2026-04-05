@@ -12,7 +12,6 @@ let drawingMode   = 'line';
 
 const PATH_COLORS = ["#00C851", "#33b5e5", "#ff4444", "#ffbb33", "#aa66cc"];
 
-// ── Mode Toggle ────────────────────────────────────────────────────────────
 function toggleDrawMode() {
     drawingMode = drawingMode === 'line' ? 'dot' : 'line';
     document.getElementById('modeText').innerText =
@@ -21,14 +20,11 @@ function toggleDrawMode() {
         drawingMode === 'line' ? '📍 Switch to Dot' : '✏️ Switch to Line';
 }
 
-// ── Canvas Init ────────────────────────────────────────────────────────────
 function initCanvas() {
     const container = document.getElementById('fieldContainer');
-    // Save strokes before resize wipes the canvas
     const savedStrokes = strokes.slice();
     canvas.width  = container.clientWidth;
     canvas.height = container.clientHeight;
-    // Restore and redraw
     strokes = savedStrokes;
     redraw();
 }
@@ -37,7 +33,6 @@ window.addEventListener('resize', () => {
     if (currentPage === 5) initCanvas();
 });
 
-// ── Redraw All Strokes ─────────────────────────────────────────────────────
 function redraw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.lineCap  = 'round';
@@ -47,7 +42,6 @@ function redraw() {
         const color = PATH_COLORS[index % PATH_COLORS.length];
 
         if (stroke.length === 1) {
-            // Single dot
             const x = pctToX(stroke[0].x);
             const y = pctToY(stroke[0].y);
             ctx.fillStyle = color;
@@ -56,7 +50,6 @@ function redraw() {
             ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.stroke();
 
         } else if (stroke.length > 1) {
-            // Drop shadow
             ctx.beginPath();
             ctx.strokeStyle = "rgba(0,0,0,0.5)";
             ctx.lineWidth   = 6;
@@ -65,7 +58,6 @@ function redraw() {
                 ctx.lineTo(pctToX(stroke[i].x) + 2, pctToY(stroke[i].y) + 2);
             ctx.stroke();
 
-            // Main path line
             ctx.beginPath();
             ctx.strokeStyle = color;
             ctx.lineWidth   = 3;
@@ -74,27 +66,23 @@ function redraw() {
                 ctx.lineTo(pctToX(stroke[i].x), pctToY(stroke[i].y));
             ctx.stroke();
 
-            // Start dot (green)
             ctx.fillStyle = "#00C851";
             ctx.beginPath();
             ctx.arc(pctToX(stroke[0].x), pctToY(stroke[0].y), 6, 0, Math.PI * 2);
             ctx.fill();
 
-            // End dot (red)
             const last = stroke[stroke.length - 1];
             ctx.fillStyle = "#ff4444";
             ctx.beginPath();
             ctx.arc(pctToX(last.x), pctToY(last.y), 6, 0, Math.PI * 2);
             ctx.fill();
 
-            // Path number label
             ctx.fillStyle   = "white";
             ctx.font        = "bold 13px Lexend, sans-serif";
             ctx.fillText(`#${index + 1}`, pctToX(stroke[0].x) + 9, pctToY(stroke[0].y) - 9);
         }
     });
 
-    // Live preview of current stroke
     if (currentStroke.length > 1) {
         ctx.beginPath();
         ctx.strokeStyle = PATH_COLORS[strokes.length % PATH_COLORS.length];
@@ -106,7 +94,6 @@ function redraw() {
     }
 }
 
-// ── Coordinate Helpers ─────────────────────────────────────────────────────
 function pctToX(pct) { return (pct / 100) * canvas.width;  }
 function pctToY(pct) { return (pct / 100) * canvas.height; }
 
@@ -116,7 +103,6 @@ function getPos(e) {
     return { x: src.clientX - rect.left, y: src.clientY - rect.top };
 }
 
-// ── Draw Events ────────────────────────────────────────────────────────────
 function startDraw(e) {
     if (e.cancelable) e.preventDefault();
     const pos = getPos(e);
@@ -163,7 +149,6 @@ function addPoint(pixelX, pixelY) {
 function toXPct(px) { return parseFloat((px / canvas.width  * 100).toFixed(1)); }
 function toYPct(py) { return parseFloat((py / canvas.height * 100).toFixed(1)); }
 
-// ── Controls ───────────────────────────────────────────────────────────────
 function clearCanvas() {
     strokes = []; currentStroke = [];
     redraw();
@@ -179,7 +164,6 @@ function undoLastStroke() {
     redraw();
 }
 
-// ── Event Listeners ────────────────────────────────────────────────────────
 canvas.addEventListener('mousedown',  startDraw);
 canvas.addEventListener('mousemove',  draw);
 canvas.addEventListener('mouseup',    endDraw);
