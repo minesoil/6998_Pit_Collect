@@ -6,16 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Unipards 2026 Pit Collect</title>
 
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
 
-<!-- External Libraries -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
-
-<!-- App Styles -->
-<link rel="stylesheet" href="css/style.css">
-
-
+    <!-- App Styles -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -106,7 +103,7 @@
         <label>Robot Weight (機器人重量)</label>
         <span class="sub-label">Select lbs or kg</span>
         <div style="display:flex;gap:10px;">
-            <input type="number" id="weight" placeholder="125" style="flex:1;">
+            <input type="number" id="weight" placeholder="125" style="flex:1;" min="1">
             <select id="weightUnit" style="width:80px;" onchange="updateNavButtons()">
                 <option value="lbs">lbs</option>
                 <option value="kg">kg</option>
@@ -116,7 +113,7 @@
 
         <br><br>
         <label>Max Fuel Capacity (最高容量)</label>
-        <input type="number" id="capacity" placeholder="e.g. 1">
+        <input type="number" id="capacity" placeholder="e.g. 1" min="1">
     </div>
 
     <!-- ── STEP 3: Systems ── -->
@@ -172,7 +169,6 @@
     <div class="card">
         <label>Turrets (砲台)</label>
 
-        <!-- Turret Type — select one -->
         <span class="sub-label">Turret Type (砲台類型)</span>
         <div class="grid-select" style="grid-template-columns: repeat(3, 1fr);">
             <label class="toggle-btn">
@@ -189,8 +185,7 @@
             </label>
         </div>
 
-        <!-- Can change degree? -->
-            <div id="degree-section" style="margin-top:15px; display:none;">
+        <div id="degree-section" style="margin-top:15px; display:none;">
             <span class="sub-label">可調仰角? (Can Change Degree?)</span>
             <div class="grid-select" style="grid-template-columns: repeat(2, 1fr);">
                 <label class="toggle-btn">
@@ -204,7 +199,6 @@
             </div>
         </div>
 
-        <!-- Degree of Freedom — shown only if Yes -->
         <div class="conditional-input" id="degreeOptionsBox" style="display:none;">
             <span class="sub-label">自由度方向 (Degree of Freedom — select all that apply)</span>
             <div class="grid-select" style="grid-template-columns: repeat(2, 1fr);">
@@ -218,20 +212,18 @@
                 </label>
             </div>
 
-            <!-- Yaw degree input -->
             <div class="conditional-input" id="yawFreedomBox">
                 <span class="sub-label">偏轉角度範圍 (Yaw Degree of Freedom)</span>
                 <input type="number" id="yawFreedomVal" placeholder="e.g. 360">
             </div>
 
-            <!-- Pitch degree input -->
             <div class="conditional-input" id="pitchFreedomBox">
                 <span class="sub-label">俯仰角度範圍 (Pitch Degree of Freedom)</span>
                 <input type="number" id="pitchFreedomVal" placeholder="e.g. 45">
             </div>
         </div>
     </div>
- </div>
+</div>
 
 <!-- ── STEP 4: Autonomous ── -->
 <div class="page" id="page2">
@@ -247,7 +239,7 @@
         <br><br>
         <label>Preload Count (Preload 數量)</label>
         <span class="sub-label">Maximum 8</span>
-        <input type="number" id="preload" placeholder="0" max="8">
+        <input type="number" id="preload" placeholder="0" min="0" max="8">
         <div class="error-msg" id="err-preload">Max Preload is 8</div>
     </div>
 
@@ -276,7 +268,7 @@
     <div class="card">
         <label>Total Auto Fuel (Auto 總共顆數)</label>
         <span class="sub-label">Scored during Auto</span>
-        <input type="number" id="autoTotal" placeholder="0">
+        <input type="number" id="autoTotal" placeholder="0" min="0" max="99">
     </div>
 
     <div class="card">
@@ -321,10 +313,11 @@
         </div>
     </div>
 
-    <div class="card">
+    <!-- Climb Time — hidden until a climb level is checked -->
+    <div class="card" id="climbTimeCard" style="display:none;">
         <label>Climb Time (吊掛時間)</label>
         <span class="sub-label">Estimated seconds to climb</span>
-        <input type="number" id="climbTime" placeholder="e.g. 5">
+        <input type="number" id="climbTime" placeholder="e.g. 5" min="0">
     </div>
 
     <div class="card">
@@ -364,6 +357,20 @@
         </button>
         <br><br>
         <button type="button" class="btn" style="background:var(--danger);color:white;font-size:0.8rem;padding:10px;" onclick="resetForm()">Reset Form</button>
+    </div>
+
+    <!-- ── Teams Scouted This Event ── -->
+    <div class="section-title" style="margin-top:30px;">Teams Scouted This Event</div>
+    <div class="card" style="padding:15px;">
+        <div id="scoutedListContainer"></div>
+        <div style="display:flex;gap:10px;margin-top:15px;">
+            <button type="button" class="btn btn-next" style="font-size:0.8rem;padding:12px;" onclick="exportCSV()">
+                ⬇ Export CSV
+            </button>
+            <button type="button" class="btn btn-back" style="font-size:0.8rem;padding:12px;flex:0 0 auto;" onclick="clearScoutedTeams()">
+                🗑 Clear All
+            </button>
+        </div>
     </div>
 </div>
 
@@ -428,11 +435,8 @@
 ═══════════════════════════════════════ -->
 
 <script src="js/tba.js"></script>
-
 <script src="js/canvas.js"></script>
-
 <script src="js/qr.js"></script>
-
 <script src="js/form.js"></script>
 
 </body>
