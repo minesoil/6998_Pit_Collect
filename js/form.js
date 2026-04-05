@@ -195,19 +195,31 @@ function toggleDegreeOptions() {
 
 function checkTurretType() {
     const degreeSection = document.getElementById('degree-section');
+    const yawOption     = document.getElementById('yawTrigger');
+    const yawLabel      = yawOption ? yawOption.closest('label') : null;
+
     let selected = '';
     for (const r of document.getElementsByName('turretType')) {
         if (r.checked) { selected = r.value; break; }
     }
-    degreeSection.style.display = (selected === 'Single' || selected === 'Double') ? 'block' : 'none';
-}
 
-function toggleAxisInput(axis) {
-    const boxId = axis === 'yaw' ? 'yawFreedomBox' : 'pitchFreedomBox';
-    const cbId  = axis === 'yaw' ? 'yawTrigger'    : 'pitchTrigger';
-    document.getElementById(boxId).style.display = document.getElementById(cbId).checked ? 'block' : 'none';
-    if (!document.getElementById(cbId).checked)
-        document.getElementById(axis + 'FreedomVal').value = '';
+    if (selected === 'Single' || selected === 'Double') {
+        degreeSection.style.display = 'block';
+        // Restore yaw option for single/double
+        if (yawLabel) yawLabel.style.display = '';
+    } else if (selected === 'Wide Shooter') {
+        degreeSection.style.display = 'block';
+        // Hide yaw (left/right) — wide shooter can only change pitch
+        if (yawLabel) yawLabel.style.display = 'none';
+        // Uncheck yaw if it was previously checked
+        if (yawOption) {
+            yawOption.checked = false;
+            document.getElementById('yawFreedomBox').style.display = 'none';
+            document.getElementById('yawFreedomVal').value = '';
+        }
+    } else {
+        degreeSection.style.display = 'none';
+    }
 }
 
 // ── Climb Time Show/Hide ───────────────────────────────────────────────────
