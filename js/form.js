@@ -108,23 +108,20 @@ function renderAssignmentList() {
     if (!container) return;
     const list = getAssignments();
     if (list.length === 0) {
-        container.innerHTML = `<div style="color:var(--text-secondary);font-size:0.8rem;">No assignments yet.</div>`;
+        container.innerHTML = '<div style="color:var(--text-secondary);font-size:0.8rem;">No assignments yet.</div>';
         return;
     }
-    container.innerHTML = list.map((a, i) => {
-        const chips = (a.teams || []).map(t =>
-            `<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(212,175,55,0.15);border:1px solid var(--border);border-radius:6px;padding:2px 7px;font-size:0.72rem;color:var(--accent);cursor:pointer;margin:2px;" onclick="removeTeamFromAssignment('${a.scouter.replace(/'/g,"\\'")}',${t})" title="Remove ${t}">${t} ✕</span>`
-        ).join('');
-        return `
-            <div style="padding:8px 0;border-bottom:1px solid #222;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-                    <span style="color:var(--accent);font-size:0.8rem;font-weight:700;">${a.scouter}</span>
-                    <button type="button" onclick="removeAssignment(${i})"
-                        style="background:var(--danger);color:white;border:none;border-radius:6px;padding:3px 8px;font-size:0.75rem;cursor:pointer;">Remove All</button>
-                </div>
-                <div style="display:flex;flex-wrap:wrap;">${chips || '<span style="color:var(--text-secondary);font-size:0.78rem;">No teams</span>'}</div>
-            </div>
-        `;
+    container.innerHTML = list.map(function(a, i) {
+        const chips = (a.teams || []).map(function(t) {
+            return '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(212,175,55,0.15);border:1px solid var(--border);border-radius:6px;padding:2px 7px;font-size:0.72rem;color:var(--accent);cursor:pointer;margin:2px;" onclick="removeTeamFromAssignment(\'' + a.scouter.replace(/'/g, "\\'") + '\',' + t + ')">' + t + ' \u2715</span>';
+        }).join('');
+        return '<div style="padding:8px 0;border-bottom:1px solid #222;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">' +
+            '<span style="color:var(--accent);font-size:0.8rem;font-weight:700;">' + a.scouter + '</span>' +
+            '<button type="button" onclick="removeAssignment(' + i + ')" style="background:var(--danger);color:white;border:none;border-radius:6px;padding:3px 8px;font-size:0.75rem;cursor:pointer;">Remove All</button>' +
+            '</div>' +
+            '<div style="display:flex;flex-wrap:wrap;">' + (chips || '<span style="color:var(--text-secondary);font-size:0.78rem;">No teams</span>') + '</div>' +
+            '</div>';
     }).join('');
 }
 
