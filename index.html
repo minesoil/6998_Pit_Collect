@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -17,7 +16,6 @@
 ═══════════════════════════════════ -->
 
 <!-- Duplicate Team Warning Modal -->
-
 <div id="duplicateModal" class="modal-overlay" style="display:none;">
     <div class="modal-box">
         <div class="modal-icon">⚠️</div>
@@ -31,7 +29,6 @@
 </div>
 
 <!-- Quick-View Modal -->
-
 <div id="quickViewModal" class="modal-overlay" style="display:none;">
     <div class="modal-box modal-box--large">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
@@ -46,7 +43,6 @@
 </div>
 
 <!-- Settings Panel -->
-
 <div id="settingsPanel" class="modal-overlay" style="display:none;">
     <div class="modal-box modal-box--large">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
@@ -54,60 +50,56 @@
             <button type="button" class="modal-close-btn" onclick="closeSettings()">✕</button>
         </div>
 
-```
-    <div class="settings-section">
-        <div class="settings-section-title">Manual Team Roster (TBA Fallback)</div>
-        <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:10px;">Add teams manually when TBA is offline. Merges with TBA list.</p>
-        <div style="display:flex;gap:8px;margin-bottom:8px;">
-            <input type="number" id="manualTeamNum"  placeholder="Team #"   style="flex:1;">
-            <input type="text"   id="manualTeamName" placeholder="Nickname" style="flex:2;">
+        <div class="settings-section">
+            <div class="settings-section-title">Manual Team Roster (TBA Fallback)</div>
+            <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:10px;">Add teams manually when TBA is offline. Merges with TBA list.</p>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+                <input type="number" id="manualTeamNum"  placeholder="Team #"   style="flex:1;">
+                <input type="text"   id="manualTeamName" placeholder="Nickname" style="flex:2;">
+            </div>
+            <button type="button" class="btn btn-next" style="padding:10px;font-size:0.8rem;width:100%;" onclick="addManualTeam()">+ Add Team</button>
+            <div id="manualRosterList" style="margin-top:12px;max-height:160px;overflow-y:auto;"></div>
         </div>
-        <button type="button" class="btn btn-next" style="padding:10px;font-size:0.8rem;width:100%;" onclick="addManualTeam()">+ Add Team</button>
-        <div id="manualRosterList" style="margin-top:12px;max-height:160px;overflow-y:auto;"></div>
-    </div>
 
-    <div class="settings-section">
-        <div class="settings-section-title">Scouter Assignments</div>
-        <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:10px;">
-            Assign specific teams from the current event roster to each scouter pair.<br>
-            <span style="color:var(--accent);">Hold Ctrl / Cmd to select multiple teams.</span>
-        </p>
-        <div id="assignmentList" style="margin-bottom:12px;"></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-            <select id="assignScouter" style="flex:2;min-width:140px;">
-                <option value="">Select scouter...</option>
-                <option value="黄浩倫 and 李苡安">黄浩倫 and 李苡安</option>
-                <option value="戴均翰 and Orson">戴均翰 and Orson</option>
-                <option value="黃柏嘉 and Daniel">黃柏嘉 and Daniel</option>
-                <option value="郭耘睿 and Justin">郭耘睿 and Justin</option>
-                <option value="裴敬庭 and 李承峰">裴敬庭 and 李承峰</option>
-            </select>
+        <div class="settings-section">
+            <div class="settings-section-title">Scouter Assignments</div>
+            <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:10px;">
+                Assign specific teams from the current event roster to each scouter pair.<br>
+                <span style="color:var(--accent);">Hold Ctrl / Cmd to select multiple teams.</span>
+            </p>
+            <div id="assignmentList" style="margin-bottom:12px;"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+                <select id="assignScouter" style="flex:2;min-width:140px;">
+                    <option value="">Select scouter...</option>
+                    <option value="黄浩倫 and 李苡安">黄浩倫 and 李苡安</option>
+                    <option value="戴均翰 and Orson">戴均翰 and Orson</option>
+                    <option value="黃柏嘉 and Daniel">黃柏嘉 and Daniel</option>
+                    <option value="郭耘睿 and Justin">郭耘睿 and Justin</option>
+                    <option value="裴敬庭 and 李承峰">裴敬庭 and 李承峰</option>
+                </select>
+            </div>
+            <div style="margin-bottom:8px;">
+                <label style="font-size:0.75rem;color:var(--text-secondary);display:block;margin-bottom:4px;">
+                    Teams from current event — select one or more:
+                </label>
+                <select id="assignTeamSelect" multiple
+                    style="width:100%;height:160px;background:var(--input-bg);border:1px solid #333;border-radius:10px;color:white;font-size:0.85rem;padding:6px;">
+                    <option disabled>Loading teams...</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-next" style="padding:10px;font-size:0.8rem;width:100%;" onclick="addAssignment()">+ Assign Selected Teams</button>
         </div>
-        <div style="margin-bottom:8px;">
-            <label style="font-size:0.75rem;color:var(--text-secondary);display:block;margin-bottom:4px;">
-                Teams from current event — select one or more:
-            </label>
-            <select id="assignTeamSelect" multiple
-                style="width:100%;height:160px;background:var(--input-bg);border:1px solid #333;border-radius:10px;color:white;font-size:0.85rem;padding:6px;">
-                <option disabled>Loading teams...</option>
-            </select>
+
+        <div class="settings-section">
+            <div class="settings-section-title">Storage Usage</div>
+            <div id="storageBar" style="margin-top:8px;"></div>
         </div>
-        <button type="button" class="btn btn-next" style="padding:10px;font-size:0.8rem;width:100%;" onclick="addAssignment()">+ Assign Selected Teams</button>
     </div>
-
-    <div class="settings-section">
-        <div class="settings-section-title">Storage Usage</div>
-        <div id="storageBar" style="margin-top:8px;"></div>
-    </div>
-</div>
-```
-
 </div>
 
 <!-- ═══════════════════════════════════
      HEADER
 ═══════════════════════════════════ -->
-
 <header>
     <div class="header-top">
         <div class="header-left">
@@ -127,59 +119,53 @@
 <!-- ═══════════════════════════════════
      FORM PAGES
 ═══════════════════════════════════ -->
-
 <div class="container">
 <form id="scoutForm">
 
 <!-- ── STEP 1: Identification ── -->
-
 <div class="page active" id="page0">
     <div class="section-title">Step 1: Identification</div>
 
-```
-<div class="card" style="z-index:10;">
-    <label>Event Selection (選擇賽事)</label>
-    <div id="eventStatusDisplay" class="team-display" style="margin-top:0;margin-bottom:12px;">Loading events...</div>
-    <div class="autocomplete-container">
-        <input type="text" id="eventSearch" placeholder="🔍 Search by name, key, or city..." autocomplete="off">
-        <div id="eventDropdown" class="autocomplete-items"></div>
+    <div class="card" style="z-index:10;">
+        <label>Event Selection (選擇賽事)</label>
+        <div id="eventStatusDisplay" class="team-display" style="margin-top:0;margin-bottom:12px;">Loading events...</div>
+        <div class="autocomplete-container">
+            <input type="text" id="eventSearch" placeholder="🔍 Search by name, key, or city..." autocomplete="off">
+            <div id="eventDropdown" class="autocomplete-items"></div>
+        </div>
     </div>
-</div>
 
-<div class="card">
-    <label>Scouter Name (你的名字)</label>
-    <select id="scouterName">
-        <option value="" disabled selected>Select Scouters (選擇姓名)...</option>
-        <option value="黄浩倫 and 李苡安">黄浩倫 and 李苡安</option>
-        <option value="戴均翰 and Orson">戴均翰 and Orson</option>
-        <option value="黃柏嘉 and Daniel">黃柏嘉 and Daniel</option>
-        <option value="郭耘睿 and Justin">郭耘睿 and Justin</option>
-        <option value="裴敬庭 and 李承峰">裴敬庭 and 李承峰</option>
-    </select>
-    <div class="error-msg" id="err-name">Please select a name</div>
-    <div id="assignmentHint" class="assignment-hint" style="display:none;"></div>
-</div>
-
-<div class="card">
-    <label>Team Number (隊伍編號)</label>
-    <input type="number" id="teamNum" placeholder="e.g. 6998">
-    <div id="teamNameDisplay" class="team-display">Waiting for event selection...</div>
-    <div id="duplicateHint" class="duplicate-hint" style="display:none;"></div>
-    <!-- TBA team detail panel (injected by tba.js) -->
-    <div id="teamTBADetail" style="display:none;"></div>
-    <div id="robotImageContainer">
-        <img id="robotImage" alt="Robot Image" crossorigin="anonymous">
+    <div class="card">
+        <label>Scouter Name (你的名字)</label>
+        <select id="scouterName">
+            <option value="" disabled selected>Select Scouters (選擇姓名)...</option>
+            <option value="黄浩倫 and 李苡安">黄浩倫 and 李苡安</option>
+            <option value="戴均翰 and Orson">戴均翰 and Orson</option>
+            <option value="黃柏嘉 and Daniel">黃柏嘉 and Daniel</option>
+            <option value="郭耘睿 and Justin">郭耘睿 and Justin</option>
+            <option value="裴敬庭 and 李承峰">裴敬庭 and 李承峰</option>
+        </select>
+        <div class="error-msg" id="err-name">Please select a name</div>
+        <div id="assignmentHint" class="assignment-hint" style="display:none;"></div>
     </div>
-    <div id="imageLoadingSpinner">⏳ Searching for robot image...</div>
-    <div id="imageStatus">No robot image found on TBA (2025/2026)</div>
-    <div class="error-msg" id="err-team">Not in Official TBA Roster</div>
-</div>
-```
 
+    <div class="card">
+        <label>Team Number (隊伍編號)</label>
+        <input type="number" id="teamNum" placeholder="e.g. 6998">
+        <div id="teamNameDisplay" class="team-display">Waiting for event selection...</div>
+        <div id="duplicateHint" class="duplicate-hint" style="display:none;"></div>
+        <!-- TBA team detail panel (injected by tba.js) -->
+        <div id="teamTBADetail" style="display:none;"></div>
+        <div id="robotImageContainer">
+            <img id="robotImage" alt="Robot Image" crossorigin="anonymous">
+        </div>
+        <div id="imageLoadingSpinner">⏳ Searching for robot image...</div>
+        <div id="imageStatus">No robot image found on TBA (2025/2026)</div>
+        <div class="error-msg" id="err-team">Not in Official TBA Roster</div>
+    </div>
 </div>
 
 <!-- ── STEP 2 + 3: Robot & Systems ── -->
-
 <div class="page" id="page1">
     <div class="section-title">Step 2: Robot Specifications</div>
     <div class="card">
@@ -206,88 +192,84 @@
         <input type="number" id="capacity" placeholder="e.g. 1" min="1">
     </div>
 
-```
-<div class="section-title">Step 3: Systems</div>
-<div class="card">
-    <label>Intake Mechanism (Intake)</label>
-    <div class="grid-select">
-        <label class="toggle-btn"><input type="checkbox" name="intake" value="OverBumper">Over Bumper (跨越保險桿)</label>
-        <label class="toggle-btn"><input type="checkbox" name="intake" value="UnderBumper">Under Bumper (穿過保險桿)</label>
-        <label class="toggle-btn"><input type="checkbox" name="intake" value="Roller">Roller (滾輪)</label>
-        <label class="toggle-btn"><input type="checkbox" name="intake" id="intakeOtherTrigger">Other (其他)</label>
-    </div>
-    <div class="conditional-input" id="intakeOtherBox">
-        <input type="text" id="intakeOtherVal" placeholder="Describe intake type...">
-    </div>
-</div>
-<div class="card">
-    <label>Vision Hardware (視覺硬體)</label>
-    <div class="grid-select">
-        <label class="toggle-btn"><input type="checkbox" name="visionHard" value="Limelight">Limelight</label>
-        <label class="toggle-btn"><input type="checkbox" name="visionHard" value="NormalCamera">Normal Camera</label>
-        <label class="toggle-btn"><input type="checkbox" name="visionHard" id="visOtherTrigger">Other (其他)</label>
-    </div>
-    <div class="conditional-input" id="visOtherBox">
-        <input type="text" id="visOtherVal" placeholder="Describe camera/vision...">
-    </div>
-</div>
-<div class="card">
-    <label>Vision Capabilities (相機功能)</label>
-    <div class="grid-select">
-        <label class="toggle-btn"><input type="checkbox" name="visionSoft" value="ObjDetect">Object Detection</label>
-        <label class="toggle-btn"><input type="checkbox" name="visionSoft" value="AprilTag">AprilTag</label>
-        <label class="toggle-btn"><input type="checkbox" name="visionSoft" id="visSoftOtherTrigger">Other (其他)</label>
-    </div>
-    <div class="conditional-input" id="visSoftOtherBox">
-        <input type="text" id="visSoftOtherVal" placeholder="Describe vision capabilities...">
-    </div>
-</div>
-<div class="card">
-    <label>Shooting Capabilities (射球能力)</label>
-    <div class="grid-select">
-        <label class="toggle-btn"><input type="checkbox" name="shoot" value="Stationary">定點射擊<br><span style="font-size:0.7em">(Stationary)</span></label>
-        <label class="toggle-btn"><input type="checkbox" name="shoot" value="MoveShoot">邊走邊射<br><span style="font-size:0.7em">(Move & Shoot)</span></label>
-        <label class="toggle-btn"><input type="checkbox" name="shoot" value="IntakeShoot">邊吸邊射<br><span style="font-size:0.7em">(Intake & Shoot)</span></label>
-        <label class="toggle-btn"><input type="checkbox" name="shoot" value="Pass">傳球<br><span style="font-size:0.7em">(Passing)</span></label>
-    </div>
-</div>
-<div class="card">
-    <label>Turrets (砲台)</label>
-    <span class="sub-label">Turret Type (砲台類型)</span>
-    <div class="grid-select" style="grid-template-columns: repeat(3, 1fr);">
-        <label class="toggle-btn"><input type="radio" name="turretType" value="Single" onchange="checkTurretType()">單旋轉炮台<br><span style="font-size:0.7em">(Single)</span></label>
-        <label class="toggle-btn"><input type="radio" name="turretType" value="Double" onchange="checkTurretType()">双旋轉炮台<br><span style="font-size:0.7em">(Double)</span></label>
-        <label class="toggle-btn"><input type="radio" name="turretType" value="Wide Shooter" onchange="checkTurretType()">寬炮台<br><span style="font-size:0.7em">(Wide Shooter)</span></label>
-    </div>
-    <div id="degree-section" style="margin-top:15px;display:none;">
-        <span class="sub-label">可調仰角? (Can Change Degree?)</span>
-        <div class="grid-select" style="grid-template-columns: repeat(2, 1fr);">
-            <label class="toggle-btn"><input type="radio" name="canChangeDegree" value="Yes" id="canDegYes" onchange="toggleDegreeOptions()">可以<br><span style="font-size:0.7em">(Yes)</span></label>
-            <label class="toggle-btn"><input type="radio" name="canChangeDegree" value="No"  id="canDegNo"  onchange="toggleDegreeOptions()">不行<br><span style="font-size:0.7em">(No)</span></label>
+    <div class="section-title">Step 3: Systems</div>
+    <div class="card">
+        <label>Intake Mechanism (Intake)</label>
+        <div class="grid-select">
+            <label class="toggle-btn"><input type="checkbox" name="intake" value="OverBumper">Over Bumper (跨越保險桿)</label>
+            <label class="toggle-btn"><input type="checkbox" name="intake" value="UnderBumper">Under Bumper (穿過保險桿)</label>
+            <label class="toggle-btn"><input type="checkbox" name="intake" value="Roller">Roller (滾輪)</label>
+            <label class="toggle-btn"><input type="checkbox" name="intake" id="intakeOtherTrigger">Other (其他)</label>
+        </div>
+        <div class="conditional-input" id="intakeOtherBox">
+            <input type="text" id="intakeOtherVal" placeholder="Describe intake type...">
         </div>
     </div>
-    <div class="conditional-input" id="degreeOptionsBox" style="display:none;">
-        <span class="sub-label">自由度方向 (Degree of Freedom)</span>
-        <div class="grid-select" style="grid-template-columns: repeat(2, 1fr);">
-            <label class="toggle-btn"><input type="checkbox" name="turretAxis" value="Yaw"   id="yawTrigger"   onchange="toggleAxisInput('yaw')">偏轉自由度<br><span style="font-size:0.7em">(Yaw)</span></label>
-            <label class="toggle-btn"><input type="checkbox" name="turretAxis" value="Pitch" id="pitchTrigger" onchange="toggleAxisInput('pitch')">俯仰自由度<br><span style="font-size:0.7em">(Pitch)</span></label>
+    <div class="card">
+        <label>Vision Hardware (視覺硬體)</label>
+        <div class="grid-select">
+            <label class="toggle-btn"><input type="checkbox" name="visionHard" value="Limelight">Limelight</label>
+            <label class="toggle-btn"><input type="checkbox" name="visionHard" value="NormalCamera">Normal Camera</label>
+            <label class="toggle-btn"><input type="checkbox" name="visionHard" id="visOtherTrigger">Other (其他)</label>
         </div>
-        <div class="conditional-input" id="yawFreedomBox">
-            <span class="sub-label">偏轉角度範圍 (Yaw DOF)</span>
-            <input type="number" id="yawFreedomVal" placeholder="e.g. 360">
-        </div>
-        <div class="conditional-input" id="pitchFreedomBox">
-            <span class="sub-label">俯仰角度範圍 (Pitch DOF)</span>
-            <input type="number" id="pitchFreedomVal" placeholder="e.g. 45">
+        <div class="conditional-input" id="visOtherBox">
+            <input type="text" id="visOtherVal" placeholder="Describe camera/vision...">
         </div>
     </div>
-</div>
-```
-
+    <div class="card">
+        <label>Vision Capabilities (相機功能)</label>
+        <div class="grid-select">
+            <label class="toggle-btn"><input type="checkbox" name="visionSoft" value="ObjDetect">Object Detection</label>
+            <label class="toggle-btn"><input type="checkbox" name="visionSoft" value="AprilTag">AprilTag</label>
+            <label class="toggle-btn"><input type="checkbox" name="visionSoft" id="visSoftOtherTrigger">Other (其他)</label>
+        </div>
+        <div class="conditional-input" id="visSoftOtherBox">
+            <input type="text" id="visSoftOtherVal" placeholder="Describe vision capabilities...">
+        </div>
+    </div>
+    <div class="card">
+        <label>Shooting Capabilities (射球能力)</label>
+        <div class="grid-select">
+            <label class="toggle-btn"><input type="checkbox" name="shoot" value="Stationary">定點射擊<br><span style="font-size:0.7em">(Stationary)</span></label>
+            <label class="toggle-btn"><input type="checkbox" name="shoot" value="MoveShoot">邊走邊射<br><span style="font-size:0.7em">(Move & Shoot)</span></label>
+            <label class="toggle-btn"><input type="checkbox" name="shoot" value="IntakeShoot">邊吸邊射<br><span style="font-size:0.7em">(Intake & Shoot)</span></label>
+            <label class="toggle-btn"><input type="checkbox" name="shoot" value="Pass">傳球<br><span style="font-size:0.7em">(Passing)</span></label>
+        </div>
+    </div>
+    <div class="card">
+        <label>Turrets (砲台)</label>
+        <span class="sub-label">Turret Type (砲台類型)</span>
+        <div class="grid-select" style="grid-template-columns: repeat(3, 1fr);">
+            <label class="toggle-btn"><input type="radio" name="turretType" value="Single" onchange="checkTurretType()">單旋轉炮台<br><span style="font-size:0.7em">(Single)</span></label>
+            <label class="toggle-btn"><input type="radio" name="turretType" value="Double" onchange="checkTurretType()">双旋轉炮台<br><span style="font-size:0.7em">(Double)</span></label>
+            <label class="toggle-btn"><input type="radio" name="turretType" value="Wide Shooter" onchange="checkTurretType()">寬炮台<br><span style="font-size:0.7em">(Wide Shooter)</span></label>
+        </div>
+        <div id="degree-section" style="margin-top:15px;display:none;">
+            <span class="sub-label">可調仰角? (Can Change Degree?)</span>
+            <div class="grid-select" style="grid-template-columns: repeat(2, 1fr);">
+                <label class="toggle-btn"><input type="radio" name="canChangeDegree" value="Yes" id="canDegYes" onchange="toggleDegreeOptions()">可以<br><span style="font-size:0.7em">(Yes)</span></label>
+                <label class="toggle-btn"><input type="radio" name="canChangeDegree" value="No"  id="canDegNo"  onchange="toggleDegreeOptions()">不行<br><span style="font-size:0.7em">(No)</span></label>
+            </div>
+        </div>
+        <div class="conditional-input" id="degreeOptionsBox" style="display:none;">
+            <span class="sub-label">自由度方向 (Degree of Freedom)</span>
+            <div class="grid-select" style="grid-template-columns: repeat(2, 1fr);">
+                <label class="toggle-btn"><input type="checkbox" name="turretAxis" value="Yaw"   id="yawTrigger"   onchange="toggleAxisInput('yaw')">偏轉自由度<br><span style="font-size:0.7em">(Yaw)</span></label>
+                <label class="toggle-btn"><input type="checkbox" name="turretAxis" value="Pitch" id="pitchTrigger" onchange="toggleAxisInput('pitch')">俯仰自由度<br><span style="font-size:0.7em">(Pitch)</span></label>
+            </div>
+            <div class="conditional-input" id="yawFreedomBox">
+                <span class="sub-label">偏轉角度範圍 (Yaw DOF)</span>
+                <input type="number" id="yawFreedomVal" placeholder="e.g. 360">
+            </div>
+            <div class="conditional-input" id="pitchFreedomBox">
+                <span class="sub-label">俯仰角度範圍 (Pitch DOF)</span>
+                <input type="number" id="pitchFreedomVal" placeholder="e.g. 45">
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- ── STEP 4: Autonomous ── -->
-
 <div class="page" id="page2">
     <div class="section-title">Step 4: Autonomous</div>
     <div class="card">
@@ -344,7 +326,6 @@
 </div>
 
 <!-- ── STEP 5: Teleop & Endgame ── -->
-
 <div class="page" id="page3">
     <div class="section-title">Step 5: Teleop & Endgame</div>
     <div class="card">
@@ -389,7 +370,6 @@
 </div>
 
 <!-- ── STEP 6: Review & Sync ── -->
-
 <div class="page" id="page4">
     <div class="section-title">Step 6: Review & Sync</div>
     <div class="card" style="text-align:center;">
@@ -411,28 +391,24 @@
         <button type="button" class="btn" style="background:var(--danger);color:white;font-size:0.8rem;padding:10px;" onclick="resetForm()">Reset Form</button>
     </div>
 
-```
-<!-- Unscouted Teams -->
-<div class="section-title" style="margin-top:30px;">Teams Not Yet Scouted</div>
-<div class="card" style="padding:15px;">
-    <div id="unscoutedListContainer"></div>
-</div>
-
-<!-- Scouted Teams -->
-<div class="section-title" style="margin-top:20px;">Teams Scouted This Event</div>
-<div class="card" style="padding:15px;">
-    <div id="scoutedListContainer"></div>
-    <div style="display:flex;gap:10px;margin-top:15px;">
-        <button type="button" class="btn btn-next" style="font-size:0.8rem;padding:12px;" onclick="exportCSV()">⬇ Export CSV</button>
-        <button type="button" class="btn btn-back" style="font-size:0.8rem;padding:12px;flex:0 0 auto;" onclick="clearScoutedTeams()">🗑 Clear All</button>
+    <!-- Unscouted Teams -->
+    <div class="section-title" style="margin-top:30px;">Teams Not Yet Scouted</div>
+    <div class="card" style="padding:15px;">
+        <div id="unscoutedListContainer"></div>
     </div>
-</div>
-```
 
+    <!-- Scouted Teams -->
+    <div class="section-title" style="margin-top:20px;">Teams Scouted This Event</div>
+    <div class="card" style="padding:15px;">
+        <div id="scoutedListContainer"></div>
+        <div style="display:flex;gap:10px;margin-top:15px;">
+            <button type="button" class="btn btn-next" style="font-size:0.8rem;padding:12px;" onclick="exportCSV()">⬇ Export CSV</button>
+            <button type="button" class="btn btn-back" style="font-size:0.8rem;padding:12px;flex:0 0 auto;" onclick="clearScoutedTeams()">🗑 Clear All</button>
+        </div>
+    </div>
 </div>
 
 <!-- ── STEP 7: Auto Path Drawing ── -->
-
 <div class="page" id="page5">
     <div class="section-title">Step 7: Draw Auto Path</div>
     <div class="card" style="text-align:center;">
@@ -466,19 +442,14 @@
 </div>
 
 <!-- NAV BAR -->
-
 <div class="nav-bar">
     <button type="button" class="btn btn-back" id="backBtn" onclick="navigate(-1)">Back</button>
     <button type="button" class="btn btn-next" id="nextBtn" onclick="navigate(1)">Next</button>
 </div>
 
 <script src="js/tba.js"></script>
-
 <script src="js/canvas.js"></script>
-
 <script src="js/qr.js"></script>
-
 <script src="js/form.js"></script>
-
 </body>
 </html>
