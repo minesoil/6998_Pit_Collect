@@ -25,6 +25,217 @@ function toggleFullScreen() {
     }
 }
 
+// ── Settings Panel ─────────────────────────────────────────────────────────
+function openSettings() {
+    renderManualRosterList();
+    renderAssignmentList();
+    updateStorageBar();
+    document.getElementById('settingsPanel').style.display = 'flex';
+}
+function closeSettings() {
+    document.getElementById('settingsPanel').style.display = 'none';
+}
+
+// ── Scouter Assignments ────────────────────────────────────────────────────
+const ASSIGNMENTS_KEY = 'SCOUTER_ASSIGNMENTS_V1';
+
+function getAssignments() {
+    try { return JSON.parse(localStorage.getItem(ASSIGNMENTS_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function addAssignment() {
+    const scouter = document.getElementById('assignScouter').value;
+    const from    = parseInt(document.getElementById('assignFrom').value);
+    const to      = parseInt(document.getElementById('assignTo').value);
+    if (!scouter || isNaN(from) || isNaN(to) || from > to) {
+        alert('Please fill in all fields. "From" must be ≤ "To".'); return;
+    }
+    const list = getAssignments();
+    list.push({ scouter, from, to });
+    safeLocalStorageSet(ASSIGNMENTS_KEY, JSON.stringify(list));
+    document.getElementById('assignScouter').value = '';
+    document.getElementById('assignFrom').value    = '';
+    document.getElementById('assignTo').value      = '';
+    renderAssignmentList();
+}
+
+function removeAssignment(index) {
+    const list = getAssignments();
+    list.splice(index, 1);
+    safeLocalStorageSet(ASSIGNMENTS_KEY, JSON.stringify(list));
+    renderAssignmentList();
+}
+
+function renderAssignmentList() {
+    const container = document.getElementById('assignmentList');
+    if (!container) return;
+    const list = getAssignments();
+    if (list.length === 0) {
+        container.innerHTML = `<div style="color:var(--text-secondary);font-size:0.8rem;">No assignments yet.</div>`;
+        return;
+    }
+    container.innerHTML = list.map((a, i) => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #222;gap:8px;">
+            <span style="color:var(--accent);font-size:0.8rem;flex:1;">${a.scouter}</span>
+            <span style="color:var(--text-secondary);font-size:0.78rem;">#${a.from} – #${a.to}</span>
+            <button type="button" onclick="removeAssignment(${i})"
+                style="background:var(--danger);color:white;border:none;border-radius:6px;padding:3px 8px;font-size:0.75rem;cursor:pointer;">✕</button>
+        </div>
+    `).join('');
+}
+
+function updateAssignmentHint() {
+    const scouter  = document.getElementById('scouterName').value;
+    const hint     = document.getElementById('assignmentHint');
+    if (!scouter || !hint) { if (hint) hint.style.display = 'none'; return; }
+    const match = getAssignments().find(a => a.scouter === scouter);
+    if (match) {
+        hint.textContent    = `📋 Your assignment: Teams #${match.from} – #${match.to}`;
+        hint.style.display  = 'block';
+    } else {
+        hint.style.display  = 'none';
+    }
+}
+
+document.getElementById('scouterName').addEventListener('change', updateAssignmentHint);
+
+// ── Pit Map ────────────────────────────────────────────────────────────────
+const PIT_PINS_KEY = 'PIT_MAP_PINS_V1';
+let pitPinMode     = false;
+
+function getPitPins() {
+    try { return JSON.parse(localStorage.getItem(PIT_PINS_KEY) || '[]'); } catch(e) { return []; }
+}
+function savePitPins(pins) {
+    safeLocalStorageSet(PIT_PINS_KEY, JSON.stringify(pins));
+}
+
+function openPitMap() {
+    document.getElementById('pitMapModal').style.display = 'flex';
+    setTimeout(initPitMapCanvas, 50);
+}
+function closePitMap() {
+    document.getElementById('pitMapModal').style.display = 'none';
+    pitPinMode = false;
+    updatePinModeBtn();
+}
+
+function togglePinMode() {
+    pitPinMode = !pitPinMode;
+    updatePinModeBtn();
+}
+function updatePinModeBtn() {
+    const btn = document.getElementById('pinModeBtn');
+    if (!btn) return;
+    btn.textContent    = pitPinMode ? '📍 Pin Mode: ON' : '📍 Pin Mode: OFF';
+    btn.style.background = pitPinMode ? 'var(--accent)' : '';
+    btn.style.color      = pitPinMode ? '#000' : '';
+}
+
+function clearPitPins() {
+    if (!confirm('Clear all pit pins?')) return;
+    savePitPins([]);
+    renderPitPins();
+}
+
+function initPitMapCanvas() {
+    const container = document.getElementById('pitMapContainer');
+    const canvas    = document.getElementById('pitMapCanvas');
+    if (!container || !canvas) return;
+    canvas.width  = container.clientWidth;
+    canvas.height = container.clientHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Draw a simple grid background to represent pit rows
+    ctx.strokeStyle = 'rgba(212,175,55,0.15)';
+    ctx.lineWidth   = 1;
+    for (let x = 0; x < canvas.width; x += 40)  { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+    for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+    ctx.strokeStyle = 'rgba(212,175,55,0.4)';
+    ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+    renderPitPins();
+}
+
+function renderPitPins() {
+    const container   = document.getElementById('pitMapContainer');
+    const pinsWrapper = document.getElementById('pitMapPins');
+    if (!pinsWrapper || !container) return;
+    const pins = getPitPins();
+    pinsWrapper.innerHTML = pins.map((p, i) => `
+        <div class="pit-pin" style="left:${p.xPct}%;top:${p.yPct}%;"
+            onclick="removePitPin(${i})" title="Team ${p.teamNum} — click to remove">
+            <div class="pit-pin-dot"></div>
+            <div class="pit-pin-label">${p.teamNum}</div>
+        </div>
+    `).join('');
+}
+
+document.getElementById('pitMapContainer').addEventListener('click', function(e) {
+    if (!pitPinMode) return;
+    const teamNum = document.getElementById('pitMapTeamInput').value.trim();
+    if (!teamNum) { alert('Enter a team number first.'); return; }
+
+    const rect = this.getBoundingClientRect();
+    const xPct = parseFloat(((e.clientX - rect.left) / rect.width  * 100).toFixed(1));
+    const yPct = parseFloat(((e.clientY - rect.top)  / rect.height * 100).toFixed(1));
+
+    const pins = getPitPins();
+    // Remove existing pin for same team first
+    const filtered = pins.filter(p => p.teamNum !== teamNum);
+    filtered.push({ teamNum, xPct, yPct });
+    savePitPins(filtered);
+    renderPitPins();
+
+    document.getElementById('pitMapTeamInput').value = '';
+    pitPinMode = false;
+    updatePinModeBtn();
+});
+
+function removePitPin(index) {
+    const pins = getPitPins();
+    pins.splice(index, 1);
+    savePitPins(pins);
+    renderPitPins();
+}
+
+// ── Duplicate Modal ────────────────────────────────────────────────────────
+let _duplicateTeamNum = null;
+
+function checkDuplicate(teamNum) {
+    if (!teamNum) return;
+    const entry = getScoutedEntry(String(teamNum));
+    const hint  = document.getElementById('duplicateHint');
+    if (entry) {
+        hint.textContent   = `⚠️ Already scouted by ${entry.scouter} at ${entry.timestamp}`;
+        hint.style.display = 'block';
+    } else {
+        hint.style.display = 'none';
+    }
+}
+
+// Called when Next is pressed on page 0 — block if duplicate
+function showDuplicateModal(teamNum) {
+    const entry = getScoutedEntry(String(teamNum));
+    if (!entry) return false; // not a duplicate, allow proceed
+    _duplicateTeamNum = teamNum;
+    document.getElementById('duplicateModalBody').textContent =
+        `Team ${teamNum} (${entry.teamName}) was already scouted by ${entry.scouter} at ${entry.timestamp}. Do you want to re-scout and overwrite?`;
+    document.getElementById('duplicateModal').style.display = 'flex';
+    return true; // is duplicate, block proceed
+}
+
+function dismissDuplicateModal() {
+    document.getElementById('duplicateModal').style.display = 'none';
+    _duplicateTeamNum = null;
+}
+
+function proceedDespiteDuplicate() {
+    document.getElementById('duplicateModal').style.display = 'none';
+    _duplicateTeamNum = null;
+    // Actually navigate now
+    _doNavigate(1);
+}
+
 // ── Turret / Degree Logic ──────────────────────────────────────────────────
 function toggleDegreeOptions() {
     const yes = document.getElementById('canDegYes').checked;
@@ -40,20 +251,18 @@ function toggleDegreeOptions() {
 }
 
 function checkTurretType() {
-    const turretRadios  = document.getElementsByName('turretType');
     const degreeSection = document.getElementById('degree-section');
-    let selectedValue   = "";
-    for (const radio of turretRadios) {
-        if (radio.checked) { selectedValue = radio.value; break; }
+    let selected = '';
+    for (const r of document.getElementsByName('turretType')) {
+        if (r.checked) { selected = r.value; break; }
     }
-    degreeSection.style.display = (selectedValue === "Single" || selectedValue === "Double") ? "block" : "none";
+    degreeSection.style.display = (selected === 'Single' || selected === 'Double') ? 'block' : 'none';
 }
 
 function toggleAxisInput(axis) {
     const boxId = axis === 'yaw' ? 'yawFreedomBox' : 'pitchFreedomBox';
     const cbId  = axis === 'yaw' ? 'yawTrigger'    : 'pitchTrigger';
-    const box   = document.getElementById(boxId);
-    box.style.display = document.getElementById(cbId).checked ? 'block' : 'none';
+    document.getElementById(boxId).style.display = document.getElementById(cbId).checked ? 'block' : 'none';
     if (!document.getElementById(cbId).checked)
         document.getElementById(axis + 'FreedomVal').value = '';
 }
@@ -68,25 +277,24 @@ function updateClimbTimeVisibility() {
     }
     updateNavButtons();
 }
-
 document.querySelectorAll('input[name="climbLvl"]').forEach(cb => {
     cb.addEventListener('change', updateClimbTimeVisibility);
+});
+
+// ── Notes Character Counter ────────────────────────────────────────────────
+document.getElementById('notes').addEventListener('input', function() {
+    document.getElementById('notesCounter').innerText = `${this.value.length} / 300`;
+    updateNavButtons();
 });
 
 // ── "Other" Conditional Inputs ─────────────────────────────────────────────
 function setupOtherToggle(triggerId, boxId) {
     document.getElementById(triggerId).addEventListener('change', function(e) {
         const box = document.getElementById(boxId);
-        if (e.target.checked) {
-            box.style.display = 'block';
-            box.querySelector('input').focus();
-        } else {
-            box.style.display = 'none';
-            box.querySelector('input').value = '';
-        }
+        if (e.target.checked) { box.style.display = 'block'; box.querySelector('input').focus(); }
+        else { box.style.display = 'none'; box.querySelector('input').value = ''; }
     });
 }
-
 setupOtherToggle('intakeOtherTrigger', 'intakeOtherBox');
 setupOtherToggle('visOtherTrigger',    'visOtherBox');
 setupOtherToggle('visSoftOtherTrigger','visSoftOtherBox');
@@ -99,14 +307,12 @@ eventSearchInput.addEventListener('input', function() {
     const val = this.value.toLowerCase().trim();
     eventDropdown.innerHTML = '';
     if (!val) { eventDropdown.style.display = 'none'; return; }
-
     let count = 0;
     for (const key in EVENTS_DATA) {
         if (count > 50) break;
         const ev  = EVENTS_DATA[key];
         const str = `${ev.key} ${ev.name} ${ev.city || ''}`.toLowerCase();
         if (!str.includes(val)) continue;
-
         const div = document.createElement('div');
         div.className = 'autocomplete-item';
         div.innerHTML = `
@@ -123,7 +329,6 @@ eventSearchInput.addEventListener('input', function() {
     }
     eventDropdown.style.display = count > 0 ? 'block' : 'none';
 });
-
 document.addEventListener('click', e => {
     if (e.target !== eventSearchInput) eventDropdown.style.display = 'none';
 });
@@ -140,7 +345,10 @@ document.getElementById('teamNum').addEventListener('input', function() {
         currentImageFetchController = null;
     }
 
-    if (tbaStatus === "loaded") {
+    // Check duplicate inline hint
+    checkDuplicate(num);
+
+    if (tbaStatus === "loaded" || tbaStatus === "empty") {
         if (TEAM_LIST[num]) {
             const team = TEAM_LIST[num];
             disp.innerHTML = `
@@ -150,19 +358,14 @@ document.getElementById('teamNum').addEventListener('input', function() {
             disp.style.background = "var(--accent)";
             imageFetchTimeout = setTimeout(() => fetchRobotImage(num), 600);
         } else {
-            disp.textContent      = num ? "Not in TBA Official List" : "Waiting for input...";
-            disp.style.color      = num ? "var(--danger)" : "var(--accent)";
-            disp.style.background = "rgba(255,255,255,0.05)";
+            disp.textContent      = num ? (tbaStatus === "empty" ? `Team ${num} (TBA list empty)` : "Not in TBA Official List") : "Waiting for input...";
+            disp.style.color      = num ? (tbaStatus === "empty" ? "#000" : "var(--danger)") : "var(--accent)";
+            disp.style.background = num && tbaStatus === "empty" ? "var(--accent)" : "rgba(255,255,255,0.05)";
         }
     } else if (tbaStatus === "loading") {
         disp.textContent      = "Fetching TBA Teams...";
         disp.style.color      = "var(--accent)";
         disp.style.background = "rgba(255,255,255,0.05)";
-    } else if (tbaStatus === "empty") {
-        disp.textContent      = num ? `Team ${num} (TBA list empty)` : "TBA has no teams yet";
-        disp.style.color      = num ? "#000" : "var(--accent)";
-        disp.style.background = num ? "var(--accent)" : "rgba(255,255,255,0.05)";
-        if (num) imageFetchTimeout = setTimeout(() => fetchRobotImage(num), 600);
     } else {
         disp.textContent      = num ? `Team ${num} (Offline Mode)` : "API Error. Enter any team.";
         disp.style.color      = num ? "#000" : "var(--danger)";
@@ -172,9 +375,9 @@ document.getElementById('teamNum').addEventListener('input', function() {
     updateNavButtons();
 });
 
-// Monitor other inputs for live validation
+// Monitor inputs for live validation
 [
-    'scouterName','notes','weight','capacity','preload','autoTotal',
+    'scouterName','weight','capacity','preload','autoTotal',
     'climbTime','intakeOtherVal','visOtherVal','visSoftOtherVal',
     'yawFreedomVal','pitchFreedomVal'
 ].forEach(id => {
@@ -204,7 +407,6 @@ function updateNavButtons() {
         } else {
             document.getElementById('err-name').style.display = 'none';
             document.getElementById('scouterName').classList.remove('violation');
-            document.getElementById('profanity-name').style.display = 'none';
         }
 
         if (!team) {
@@ -259,13 +461,13 @@ function updateNavButtons() {
 
         if (!preloadVal || !autoTotalVal) {
             isValid = false;
-        } else if (preload > 8) {
-            errEl.innerText = "Max Preload is 8";
+        } else if (preload < 0) {
+            errEl.innerText = "Preload cannot be negative";
             errEl.style.display = 'block';
             document.getElementById('preload').classList.add('violation');
             isValid = false;
-        } else if (preload < 0) {
-            errEl.innerText = "Preload cannot be negative";
+        } else if (preload > 8) {
+            errEl.innerText = "Max Preload is 8";
             errEl.style.display = 'block';
             document.getElementById('preload').classList.add('violation');
             isValid = false;
@@ -274,9 +476,7 @@ function updateNavButtons() {
             errEl.style.display = 'block';
             document.getElementById('preload').classList.add('violation');
             isValid = false;
-        } else if (autoTotal < 0) {
-            isValid = false;
-        } else if (autoTotal > 99) {
+        } else if (autoTotal < 0 || autoTotal > 99) {
             isValid = false;
         } else {
             errEl.style.display = 'none';
@@ -284,13 +484,9 @@ function updateNavButtons() {
         }
     }
     else if (currentPage === 3) {
-        const notes        = document.getElementById('notes').value;
-        const anyClimb     = document.querySelectorAll('input[name="climbLvl"]:checked').length > 0;
-        const climbTimeVal = document.getElementById('climbTime').value;
-
-        // climbTime only required if a climb level is checked
-        if (anyClimb && !climbTimeVal) isValid = false;
-
+        const notes    = document.getElementById('notes').value;
+        const anyClimb = document.querySelectorAll('input[name="climbLvl"]:checked').length > 0;
+        if (anyClimb && !document.getElementById('climbTime').value) isValid = false;
         if (containsProfanity(notes)) {
             document.getElementById('profanity-notes').style.display = 'block';
             document.getElementById('notes').classList.add('violation');
@@ -304,13 +500,23 @@ function updateNavButtons() {
     nextBtn.disabled = !isValid;
 }
 
+// ── Navigation ─────────────────────────────────────────────────────────────
 function navigate(dir) {
     if (dir === 1 && document.getElementById('nextBtn').disabled) return;
 
+    // Duplicate guard on leaving page 0 going forward
+    if (dir === 1 && currentPage === 0) {
+        const teamNum = document.getElementById('teamNum').value.trim();
+        if (showDuplicateModal(teamNum)) return; // blocked — modal handles proceed
+    }
+
+    _doNavigate(dir);
+}
+
+function _doNavigate(dir) {
     document.getElementById(`page${currentPage}`).classList.remove('active');
     currentPage += dir;
     document.getElementById(`page${currentPage}`).classList.add('active');
-
     document.getElementById('backBtn').style.visibility = currentPage === 0 ? 'hidden' : 'visible';
 
     if (currentPage === 4) {
@@ -319,6 +525,7 @@ function navigate(dir) {
         document.body.style.paddingBottom = '0';
         prepareReview();
         renderScoutedList();
+        renderUnscoutedList();
     } else if (currentPage === 5) {
         document.getElementById('nextBtn').style.display = 'none';
         document.querySelector('.nav-bar').style.display = 'none';
@@ -349,9 +556,9 @@ function getMultiValues(name, otherId = null) {
 
 // ── Review Page ────────────────────────────────────────────────────────────
 function prepareReview() {
-    const t        = document.getElementById('teamNum').value;
-    const name     = TEAM_LIST[t]?.name ?? "Unknown";
-    const unit     = document.getElementById('weightUnit').value;
+    const t         = document.getElementById('teamNum').value;
+    const name      = TEAM_LIST[t]?.name ?? "Unknown";
+    const unit      = document.getElementById('weightUnit').value;
     const weightVal = document.getElementById('weight').value;
     const weightLbs = unit === 'kg' ? (parseFloat(weightVal) * 2.20462).toFixed(1) : weightVal;
 
@@ -404,7 +611,6 @@ function prepareReview() {
             </div>`;
         }
     });
-
     document.getElementById('reviewText').innerHTML = html;
 }
 
@@ -423,6 +629,10 @@ function resetForm() {
     disp.style.color      = "var(--accent)";
     disp.style.background = "rgba(255,255,255,0.05)";
 
+    document.getElementById('duplicateHint').style.display  = 'none';
+    document.getElementById('assignmentHint').style.display = 'none';
+    document.getElementById('notesCounter').innerText       = '0 / 300';
+
     resetImageUI();
     clearTimeout(imageFetchTimeout);
     if (currentImageFetchController) {
@@ -436,10 +646,10 @@ function resetForm() {
     document.querySelectorAll('.profanity-alert').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.violation').forEach(el      => el.classList.remove('violation'));
 
-    document.getElementById('qrcode').innerHTML      = '';
-    document.getElementById('qrcode').style.display  = 'none';
-    document.getElementById('qrcodePath').innerHTML      = '';
-    document.getElementById('qrcodePath').style.display  = 'none';
+    document.getElementById('qrcode').innerHTML     = '';
+    document.getElementById('qrcode').style.display = 'none';
+    document.getElementById('qrcodePath').innerHTML     = '';
+    document.getElementById('qrcodePath').style.display = 'none';
 
     document.getElementById('generateBtn').style.display = 'inline-block';
     document.getElementById('goToPathBtn').style.display = 'none';
@@ -447,7 +657,6 @@ function resetForm() {
     pathBtn.style.display = 'inline-block';
     pathBtn.innerText     = 'Generate Path QRs';
 
-    // Reset climb time card visibility
     const climbTimeCard = document.getElementById('climbTimeCard');
     if (climbTimeCard) climbTimeCard.style.display = 'none';
 
@@ -458,8 +667,7 @@ function resetForm() {
     document.getElementById('page0').classList.add('active');
     document.getElementById('backBtn').style.visibility = 'hidden';
     document.getElementById('nextBtn').style.display    = 'block';
-
-    document.querySelector('.nav-bar').style.display = 'flex';
+    document.querySelector('.nav-bar').style.display    = 'flex';
     document.body.style.paddingBottom = '100px';
 
     document.getElementById('teamNum').dispatchEvent(new Event('input'));
@@ -469,7 +677,6 @@ function resetForm() {
 
 // ── Init ───────────────────────────────────────────────────────────────────
 document.getElementById('backBtn').style.visibility = 'hidden';
-// Climb time starts hidden
 const _ctCard = document.getElementById('climbTimeCard');
 if (_ctCard) _ctCard.style.display = 'none';
 updateNavButtons();
