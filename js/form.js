@@ -28,120 +28,12 @@ function toggleFullScreen() {
 // ── Settings Panel ─────────────────────────────────────────────────────────
 function openSettings() {
     renderManualRosterList();
-    renderAssignmentList();
-    refreshAssignmentTeamSelect();
     updateStorageBar();
     document.getElementById('settingsPanel').style.display = 'flex';
 }
 function closeSettings() {
     document.getElementById('settingsPanel').style.display = 'none';
 }
-
-// ── Scouter Assignments (team-picker, not range) ───────────────────────────
-const ASSIGNMENTS_KEY = 'SCOUTER_ASSIGNMENTS_V2';
-
-function getAssignments() {
-    try { return JSON.parse(localStorage.getItem(ASSIGNMENTS_KEY) || '[]'); } catch(e) { return []; }
-}
-
-// Build the multi-select of available teams (sorted numerically)
-function refreshAssignmentTeamSelect() {
-    const sel = document.getElementById('assignTeamSelect');
-    if (!sel) return;
-    const assigned = new Set(getAssignments().flatMap(a => a.teams || []));
-    const teams = Object.keys(TEAM_LIST).map(Number).sort((a, b) => a - b);
-    sel.innerHTML = teams.map(num => {
-        const name = TEAM_LIST[num]?.name || '';
-        const alr  = assigned.has(num) ? ' (assigned)' : '';
-        return `<option value="${num}">${num} — ${name}${alr}</option>`;
-    }).join('');
-    if (teams.length === 0) {
-        sel.innerHTML = '<option value="" disabled>No teams loaded yet</option>';
-    }
-}
-
-function addAssignment() {
-    const scouter = document.getElementById('assignScouter').value;
-    const sel     = document.getElementById('assignTeamSelect');
-    if (!scouter) { alert('Please select a scouter pair.'); return; }
-    const selected = Array.from(sel.selectedOptions).map(o => parseInt(o.value)).filter(Boolean);
-    if (selected.length === 0) { alert('Please select at least one team.'); return; }
-
-    const list = getAssignments();
-    // Merge into existing entry for same scouter, or create new
-    const existing = list.find(a => a.scouter === scouter);
-    if (existing) {
-        const merged = Array.from(new Set([...existing.teams, ...selected])).sort((a, b) => a - b);
-        existing.teams = merged;
-    } else {
-        list.push({ scouter, teams: selected.sort((a, b) => a - b) });
-    }
-    safeLocalStorageSet(ASSIGNMENTS_KEY, JSON.stringify(list));
-
-    // Deselect
-    Array.from(sel.options).forEach(o => o.selected = false);
-    renderAssignmentList();
-    refreshAssignmentTeamSelect();
-}
-
-function removeAssignment(index) {
-    const list = getAssignments();
-    list.splice(index, 1);
-    safeLocalStorageSet(ASSIGNMENTS_KEY, JSON.stringify(list));
-    renderAssignmentList();
-    refreshAssignmentTeamSelect();
-}
-
-function removeTeamFromAssignment(scouterName, teamNum) {
-    const list = getAssignments();
-    const entry = list.find(a => a.scouter === scouterName);
-    if (!entry) return;
-    entry.teams = entry.teams.filter(t => t !== teamNum);
-    if (entry.teams.length === 0) list.splice(list.indexOf(entry), 1);
-    safeLocalStorageSet(ASSIGNMENTS_KEY, JSON.stringify(list));
-    renderAssignmentList();
-    refreshAssignmentTeamSelect();
-}
-
-function renderAssignmentList() {
-    const container = document.getElementById('assignmentList');
-    if (!container) return;
-    const list = getAssignments();
-    if (list.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-secondary);font-size:0.8rem;">No assignments yet.</div>';
-        return;
-    }
-    container.innerHTML = list.map(function(a, i) {
-        const chips = (a.teams || []).map(function(t) {
-            return '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(212,175,55,0.15);border:1px solid var(--border);border-radius:6px;padding:2px 7px;font-size:0.72rem;color:var(--accent);cursor:pointer;margin:2px;" onclick="removeTeamFromAssignment(\'' + a.scouter.replace(/'/g, "\\'") + '\',' + t + ')">' + t + ' \u2715</span>';
-        }).join('');
-        return '<div style="padding:8px 0;border-bottom:1px solid #222;">' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">' +
-            '<span style="color:var(--accent);font-size:0.8rem;font-weight:700;">' + a.scouter + '</span>' +
-            '<button type="button" onclick="removeAssignment(' + i + ')" style="background:var(--danger);color:white;border:none;border-radius:6px;padding:3px 8px;font-size:0.75rem;cursor:pointer;">Remove All</button>' +
-            '</div>' +
-            '<div style="display:flex;flex-wrap:wrap;">' + (chips || '<span style="color:var(--text-secondary);font-size:0.78rem;">No teams</span>') + '</div>' +
-            '</div>';
-    }).join('');
-}
-
-function updateAssignmentHint() {
-    const scouter = document.getElementById('scouterName').value;
-    const hint    = document.getElementById('assignmentHint');
-    const teamNum = parseInt(document.getElementById('teamNum').value);
-    if (!scouter || !hint) { if (hint) hint.style.display = 'none'; return; }
-    const match = getAssignments().find(a => a.scouter === scouter);
-    if (match && match.teams?.length > 0) {
-        const isAssigned = match.teams.includes(teamNum);
-        const teamListStr = match.teams.join(', ');
-        hint.innerHTML  = `📋 Your teams: <strong>${teamListStr}</strong>${isAssigned ? ' ✓ (this team is yours)' : ''}`;
-        hint.style.display = 'block';
-    } else {
-        hint.style.display = 'none';
-    }
-}
-
-document.getElementById('scouterName').addEventListener('change', updateAssignmentHint);
 
 // ── Duplicate Modal ────────────────────────────────────────────────────────
 let _duplicateTeamNum = null;
@@ -205,13 +97,10 @@ function checkTurretType() {
 
     if (selected === 'Single' || selected === 'Double') {
         degreeSection.style.display = 'block';
-        // Restore yaw option for single/double
         if (yawLabel) yawLabel.style.display = '';
     } else if (selected === 'Wide Shooter') {
         degreeSection.style.display = 'block';
-        // Hide yaw (left/right) — wide shooter can only change pitch
         if (yawLabel) yawLabel.style.display = 'none';
-        // Uncheck yaw if it was previously checked
         if (yawOption) {
             yawOption.checked = false;
             document.getElementById('yawFreedomBox').style.display = 'none';
@@ -221,6 +110,7 @@ function checkTurretType() {
         degreeSection.style.display = 'none';
     }
 }
+
 function toggleAxisInput(axis) {
     const boxId = axis === 'yaw' ? 'yawFreedomBox' : 'pitchFreedomBox';
     const cbId  = axis === 'yaw' ? 'yawTrigger'    : 'pitchTrigger';
@@ -300,15 +190,7 @@ document.getElementById('teamNum').addEventListener('input', function() {
     const num  = this.value;
     const disp = document.getElementById('teamNameDisplay');
 
-    resetImageUI();
-    clearTimeout(imageFetchTimeout);
-    if (currentImageFetchController) {
-        currentImageFetchController.abort();
-        currentImageFetchController = null;
-    }
-
     checkDuplicate(num);
-    updateAssignmentHint();
 
     if (tbaStatus === "loaded" || tbaStatus === "empty") {
         if (TEAM_LIST[num]) {
@@ -318,8 +200,11 @@ document.getElementById('teamNum').addEventListener('input', function() {
                 <div style="font-size:0.8rem;color:#333;font-weight:600;">📍 ${team.location}</div>
             `;
             disp.style.background = "var(--accent)";
-            imageFetchTimeout = setTimeout(() => fetchRobotImage(num), 600);
+            // Fetch TBA detail panel
+            fetchTeamTBADetail(num);
         } else {
+            const panel = document.getElementById('teamTBADetail');
+            if (panel) { panel.style.display = 'none'; panel.innerHTML = ''; }
             disp.textContent      = num ? (tbaStatus === "empty" ? `Team ${num} (TBA list empty)` : "Not in TBA Official List") : "Waiting for input...";
             disp.style.color      = num ? (tbaStatus === "empty" ? "#000" : "var(--danger)") : "var(--accent)";
             disp.style.background = num && tbaStatus === "empty" ? "var(--accent)" : "rgba(255,255,255,0.05)";
@@ -438,7 +323,6 @@ function updateNavButtons() {
             document.getElementById('preload').classList.add('violation');
             isValid = false;
         } else if (autoTotal < 0 || autoTotal > 499) {
-            // Updated: max 499 auto balls
             document.getElementById('err-preload').style.display = 'none';
             document.getElementById('preload').classList.remove('violation');
             if (autoTotal < 0 || autoTotal > 499) isValid = false;
@@ -593,15 +477,10 @@ function resetForm() {
     disp.style.background = "rgba(255,255,255,0.05)";
 
     document.getElementById('duplicateHint').style.display  = 'none';
-    document.getElementById('assignmentHint').style.display = 'none';
     document.getElementById('notesCounter').innerText       = '0 / 300';
 
-    resetImageUI();
-    clearTimeout(imageFetchTimeout);
-    if (currentImageFetchController) {
-        currentImageFetchController.abort();
-        currentImageFetchController = null;
-    }
+    const panel = document.getElementById('teamTBADetail');
+    if (panel) { panel.style.display = 'none'; panel.innerHTML = ''; }
 
     document.getElementById('qrHeader').style.display     = 'none';
     document.getElementById('pathQrHeader').style.display = 'none';
