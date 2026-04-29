@@ -7,7 +7,7 @@
 const TBA_API_KEY = "C5Jcj7IYgrD4YYv1FpWUq0zsc09a7i0cNQ4mqWhWLoQlXbfSp8SQAuYAxZn3DRqi";
 
 // ── State ──────────────────────────────────────────────────────────────────
-let EVENT_KEY = localStorage.getItem('TBA_LAST_EVENT') || "2026txda";
+let EVENT_KEY = localStorage.getItem('TBA_LAST_EVENT') || "2026daly";
 let EVENTS_DATA = {};
 let TEAM_LIST   = {};
 let CURRENT_EVENT_DETAIL = null;
