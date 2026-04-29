@@ -4,10 +4,13 @@
    Supports edit/prefill from scouted list.
 ========================================= */
 
-const SCOUTED_KEY  = 'SCOUTED_TEAMS_2026_V1';
-const QR_VERSION   = 'v2';
-let _editingTeamNum = null;   // set during edit prefill to suppress duplicate checks
+const SCOUTED_KEY = 'SCOUTED_TEAMS_2026_V1';
+const QR_VERSION  = 'v2';
 
+// ── Edit-mode flag (suppresses duplicate warnings during prefill) ───────────
+let _editingTeamNum = null;
+
+// ── Scouted data helpers ───────────────────────────────────────────────────
 function getScoutedTeams() {
     try { return JSON.parse(localStorage.getItem(SCOUTED_KEY) || '[]'); } catch(e) { return []; }
 }
@@ -36,6 +39,7 @@ function getScoutedEntry(teamNum) {
     return getScoutedTeams().find(e => e.teamNum === String(teamNum) && e.eventKey === EVENT_KEY) || null;
 }
 
+// ── QR Generation ─────────────────────────────────────────────────────────
 function generateQR() {
     const teamNum        = document.getElementById('teamNum').value;
     const teamName       = TEAM_LIST[teamNum]?.name ?? "Unknown Team";
@@ -101,7 +105,7 @@ function generateQR() {
     incrementRobotCount();
 
     const entry = {
-        teamNum: String(teamNum),
+        teamNum:    String(teamNum),
         teamName,
         eventKey:   EVENT_KEY,
         scouter:    document.getElementById('scouterName').value,
@@ -131,6 +135,7 @@ function generateQR() {
     saveScoutedEntry(entry);
     renderScoutedList();
     renderUnscoutedList();
+    updateAssignmentHint();   // refresh chip checkmarks
     updateStorageBar();
 }
 
@@ -175,6 +180,7 @@ function generatePathQR() {
     document.getElementById('generatePathBtn').innerText = "Update Path QRs";
 }
 
+// ── Scouted list rendering ─────────────────────────────────────────────────
 function renderScoutedList() {
     const container = document.getElementById('scoutedListContainer');
     if (!container) return;
@@ -212,7 +218,7 @@ function renderUnscoutedList() {
     const unscouted = allTeams.filter(n => !scoutedNums.has(n));
 
     if (allTeams.length === 0) {
-        container.innerHTML = `<div style="color:var(--text-secondary);font-size:0.85rem;text-align:center;padding:10px;">No team list loaded yet.</div>`;
+        container.innerHTML = `<div style="color:var(--text-secondary);font-size:0.85rem;text-align:center;padding:10px;">No team list loaded — add teams manually in ⚙️ Settings.</div>`;
         return;
     }
     if (unscouted.length === 0) {
@@ -247,6 +253,7 @@ function jumpToTeam(teamNum) {
     window.scrollTo(0, 0);
 }
 
+// ── Quick-View Modal ───────────────────────────────────────────────────────
 let _quickViewTeamNum = null;
 
 function openQuickView(teamNum) {
@@ -257,28 +264,28 @@ function openQuickView(teamNum) {
     document.getElementById('quickViewTitle').innerText = `Team ${entry.teamNum} — ${entry.teamName}`;
 
     const fields = [
-        ['Scouter',         entry.scouter],
-        ['Chassis',         entry.chassis],
-        ['Weight',          entry.weight],
-        ['Capacity',        entry.capacity],
-        ['Intake',          entry.intake   || 'None'],
-        ['Vision HW',       entry.visionHard || 'None'],
-        ['Vision SW',       entry.visionSoft || 'None'],
-        ['Shooting',        entry.shoot    || 'None'],
-        ['Turret',          entry.turret],
-        ['Start Pos',       entry.startPos || 'None'],
-        ['Preload',         entry.preload],
-        ['Auto Intake',     entry.autoIntake],
-        ['Auto Hang',       entry.autoHang],
-        ['Auto Total',      entry.autoTotal],
-        ['Cross Midfield',  entry.crossMid],
-        ['Terrain',         entry.terrain  || 'None'],
-        ['Climb Levels',    entry.climbLvl || 'None'],
-        ['Climb Position',  entry.climbPos || 'None'],
-        ['Climb Time',      entry.climbTime],
-        ['Photos',          entry.photos],
-        ['Notes',           entry.notes    || '—'],
-        ['Timestamp',       entry.timestamp],
+        ['Scouter',        entry.scouter],
+        ['Chassis',        entry.chassis],
+        ['Weight',         entry.weight],
+        ['Capacity',       entry.capacity],
+        ['Intake',         entry.intake   || 'None'],
+        ['Vision HW',      entry.visionHard || 'None'],
+        ['Vision SW',      entry.visionSoft || 'None'],
+        ['Shooting',       entry.shoot    || 'None'],
+        ['Turret',         entry.turret],
+        ['Start Pos',      entry.startPos || 'None'],
+        ['Preload',        entry.preload],
+        ['Auto Intake',    entry.autoIntake],
+        ['Auto Hang',      entry.autoHang],
+        ['Auto Total',     entry.autoTotal],
+        ['Cross Midfield', entry.crossMid],
+        ['Terrain',        entry.terrain  || 'None'],
+        ['Climb Levels',   entry.climbLvl || 'None'],
+        ['Climb Position', entry.climbPos || 'None'],
+        ['Climb Time',     entry.climbTime],
+        ['Photos',         entry.photos],
+        ['Notes',          entry.notes    || '—'],
+        ['Timestamp',      entry.timestamp],
     ];
 
     let html = '';
@@ -308,7 +315,8 @@ function editEntry(teamNum) {
     const entry = getScoutedEntry(teamNum);
     if (!entry) return;
 
-    _editingTeamNum = String(teamNum);   // ← suppress duplicate warning during prefill
+    // Set flag BEFORE navigation so checkDuplicate is suppressed
+    _editingTeamNum = String(teamNum);
 
     document.querySelector('.page.active').classList.remove('active');
     currentPage = 0;
@@ -321,10 +329,11 @@ function editEntry(teamNum) {
 
     setTimeout(() => {
         prefillForm(entry);
-        _editingTeamNum = null;   // ← clear after prefill finishes
+        _editingTeamNum = null;   // clear after prefill dispatches events
     }, 50);
 }
 
+// ── Prefill ────────────────────────────────────────────────────────────────
 function prefillForm(e) {
     document.getElementById('teamNum').value = e.teamNum;
     document.getElementById('teamNum').dispatchEvent(new Event('input'));
@@ -333,6 +342,7 @@ function prefillForm(e) {
     for (const opt of scouterSel.options) {
         if (opt.value === e.scouter) { opt.selected = true; break; }
     }
+    scouterSel.dispatchEvent(new Event('change'));
 
     const chassisSel = document.getElementById('chassis');
     for (const opt of chassisSel.options) {
@@ -351,10 +361,10 @@ function prefillForm(e) {
         });
     }
 
-    setCheckboxes('intake',    e.intake);
+    setCheckboxes('intake',     e.intake);
     setCheckboxes('visionHard', e.visionHard);
     setCheckboxes('visionSoft', e.visionSoft);
-    setCheckboxes('shoot',     e.shoot);
+    setCheckboxes('shoot',      e.shoot);
 
     const turretMatch = (e.turret || '').match(/Type: ([^|]+)/);
     if (turretMatch) {
@@ -393,6 +403,7 @@ function prefillForm(e) {
     updateNavButtons();
 }
 
+// ── CSV Export ─────────────────────────────────────────────────────────────
 function exportCSV() {
     const list = getScoutedTeams().filter(e => e.eventKey === EVENT_KEY);
     if (list.length === 0) { alert("No scouted data to export."); return; }
