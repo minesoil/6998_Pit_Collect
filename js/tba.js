@@ -1,10 +1,21 @@
 /* =========================================
    tba.js — The Blue Alliance API Integration
    Handles: events, team lists,
-            manual roster, storage guard
+            manual roster, storage guard,
+            robot images, scouter assignments
 ========================================= */
 
 const TBA_API_KEY = "C5Jcj7IYgrD4YYv1FpWUq0zsc09a7i0cNQ4mqWhWLoQlXbfSp8SQAuYAxZn3DRqi";
+
+// ── Scouter Assignments (hardcoded for 2026 season) ────────────────────────
+const SCOUTER_ASSIGNMENTS = {
+    "郭耘睿 林宥均":           [1741, 2429, 1155, 1156, 3478, 1880, 10619, 7520, 1058, 2883, 4674, 1538],
+    "張俊彬 裴敬庭":           [10213, 2399, 1676, 6391, 6696, 5534, 6017, 8724, 5847, 11, 9545, 4028],
+    "黃浩倫 林以澈":           [3538, 3399, 272, 4056, 316, 7632, 1323, 999, 3314, 303, 2472, 5813, 7712],
+    "李忻叡 戴均翰 justin":    [9094, 1939, 8393, 2530, 6919, 340, 3656, 3880, 3100, 6106, 4188, 9715],
+    "莊欣嬡 黃可愛 李苡安 吳衣絜": [10229, 6998, 10002, 5550, 972, 3990, 6941, 5557, 1926, 3646, 176, 11178],
+    "李承峰 李昌佑":           [3008, 2073, 1325, 1727, 11141, 5937, 4678, 2338, 4189, 624, 469, 4414, 2718, 1720],
+};
 
 // ── State ──────────────────────────────────────────────────────────────────
 let EVENT_KEY = localStorage.getItem('TBA_LAST_EVENT') || "2026dal";
@@ -57,7 +68,7 @@ function removeManualTeam(num) {
 function renderManualRosterList() {
     const container = document.getElementById('manualRosterList');
     if (!container) return;
-    const roster = getManualRoster();
+    const roster  = getManualRoster();
     const entries = Object.entries(roster);
     if (entries.length === 0) {
         container.innerHTML = `<div style="color:var(--text-secondary);font-size:0.8rem;text-align:center;padding:8px;">No manual teams added.</div>`;
@@ -97,10 +108,10 @@ function safeLocalStorageSet(key, value) {
 function updateStorageBar() {
     const bar = document.getElementById('storageBar');
     if (!bar) return;
-    const used    = getStorageUsageKB();
-    const maxKB   = 5120;
-    const pct     = Math.min(100, Math.round(used / maxKB * 100));
-    const color   = pct > 80 ? 'var(--danger)' : pct > 60 ? '#ffbb33' : 'var(--success)';
+    const used  = getStorageUsageKB();
+    const maxKB = 5120;
+    const pct   = Math.min(100, Math.round(used / maxKB * 100));
+    const color = pct > 80 ? 'var(--danger)' : pct > 60 ? '#ffbb33' : 'var(--success)';
     bar.innerHTML = `
         <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-secondary);margin-bottom:5px;">
             <span>Used: ~${used} KB</span><span>${pct}% of ~5 MB</span>
@@ -135,6 +146,95 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 6000) {
     }
 }
 
+// ── Robot Images ───────────────────────────────────────────────────────────
+const IMAGE_CACHE_KEY = 'TBA_IMAGES_2026_V5';
+
+function getImageCache() {
+    try { return JSON.parse(localStorage.getItem(IMAGE_CACHE_KEY) || '{}'); } catch(e) { return {}; }
+}
+
+async function testImageUrl(url) {
+    return new Promise(resolve => {
+        const img   = new Image();
+        const timer = setTimeout(() => resolve(null), 5000);
+        img.onload  = () => { clearTimeout(timer); resolve(url); };
+        img.onerror = () => { clearTimeout(timer); resolve(null); };
+        img.src = url;
+    });
+}
+
+async function fetchRobotImage(teamNum) {
+    const container = document.getElementById('robotImageContainer');
+    const imgEl     = document.getElementById('robotImage');
+    const statusEl  = document.getElementById('imageStatus');
+    const spinner   = document.getElementById('imageLoadingSpinner');
+    if (!container) return;
+
+    container.style.display = 'block';
+    spinner.style.display   = 'block';
+    imgEl.style.display     = 'none';
+    statusEl.style.display  = 'none';
+
+    const show = (url) => {
+        spinner.style.display  = 'none';
+        imgEl.src              = url;
+        imgEl.style.display    = 'block';
+        statusEl.style.display = 'none';
+    };
+    const showNone = (msg) => {
+        spinner.style.display  = 'none';
+        imgEl.style.display    = 'none';
+        statusEl.textContent   = msg;
+        statusEl.style.display = 'block';
+    };
+
+    // Check cache first
+    const cache = getImageCache();
+    if (cache[teamNum]) {
+        if (cache[teamNum] === 'none') { showNone('No robot image found on TBA (2025/2026)'); return; }
+        const verified = await testImageUrl(cache[teamNum]);
+        if (verified) { show(verified); return; }
+        delete cache[teamNum]; // stale — re-fetch
+    }
+
+    try {
+        const [r26, r25] = await Promise.all([
+            fetchWithTimeout(
+                `https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/2026`,
+                { headers: { 'X-TBA-Auth-Key': TBA_API_KEY } }
+            ).catch(() => null),
+            fetchWithTimeout(
+                `https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/2025`,
+                { headers: { 'X-TBA-Auth-Key': TBA_API_KEY } }
+            ).catch(() => null),
+        ]);
+
+        const candidates = [];
+        for (const r of [r26, r25]) {
+            if (r?.ok) {
+                const media = await r.json();
+                media.filter(m => m.direct_url).forEach(m => candidates.push(m.direct_url));
+            }
+        }
+
+        let found = null;
+        for (const url of candidates) {
+            const ok = await testImageUrl(url);
+            if (ok) { found = ok; break; }
+        }
+
+        const newCache = getImageCache();
+        newCache[teamNum] = found || 'none';
+        safeLocalStorageSet(IMAGE_CACHE_KEY, JSON.stringify(newCache));
+
+        if (found) show(found);
+        else showNone('No robot image found on TBA (2025/2026)');
+
+    } catch(e) {
+        showNone('📡 Offline — robot image unavailable');
+    }
+}
+
 // ── Events ─────────────────────────────────────────────────────────────────
 async function fetchEvents() {
     const disp   = document.getElementById('eventStatusDisplay');
@@ -159,7 +259,7 @@ async function fetchEvents() {
     } catch (err) {
         console.warn("Could not fetch events:", err);
         if (Object.keys(EVENTS_DATA).length === 0) {
-            disp.textContent = "Offline Mode (Search disabled)";
+            disp.textContent = "📡 Offline Mode (Event search disabled)";
             disp.style.color = "var(--text-secondary)";
         }
     }
@@ -198,12 +298,10 @@ function updateEventStatusDisplay() {
         return;
     }
 
-    const city     = ev.city ? `${ev.city}, ${ev.state_prov || ''} ${ev.country || ''}`.trim().replace(/,$/, '') : '';
-    const dateStr  = ev.start_date && ev.end_date
-        ? `${ev.start_date} → ${ev.end_date}`
-        : (ev.start_date || '');
-    const typeStr  = ev.event_type != null ? formatEventType(ev.event_type) : '';
-    const week     = ev.week != null ? `Week ${ev.week + 1}` : '';
+    const city    = ev.city ? `${ev.city}, ${ev.state_prov || ''} ${ev.country || ''}`.trim().replace(/,$/, '') : '';
+    const dateStr = ev.start_date && ev.end_date ? `${ev.start_date} → ${ev.end_date}` : (ev.start_date || '');
+    const typeStr = ev.event_type != null ? formatEventType(ev.event_type) : '';
+    const week    = ev.week != null ? `Week ${ev.week + 1}` : '';
     const district = ev.district?.display_name || '';
     const webcast  = (CURRENT_EVENT_DETAIL?.webcasts || []).find(w => w.type === 'twitch' || w.type === 'youtube');
     const webcLink = webcast
@@ -211,7 +309,6 @@ function updateEventStatusDisplay() {
             ? `https://twitch.tv/${webcast.channel}`
             : `https://youtube.com/watch?v=${webcast.channel}`)
         : null;
-
     const meta = [typeStr, week, district, city].filter(Boolean).join(' · ');
 
     disp.style.background   = "var(--accent)";
@@ -237,7 +334,7 @@ function selectEvent(key) {
     safeLocalStorageSet('TBA_LAST_EVENT', EVENT_KEY);
     updateEventStatusDisplay();
     TEAM_LIST = {};
-    document.getElementById('teamNameDisplay').innerHTML   = "Switching events...";
+    document.getElementById('teamNameDisplay').innerHTML        = "Switching events...";
     document.getElementById('teamNameDisplay').style.background = "rgba(255,255,255,0.05)";
     fetchEventDetail(key);
     initTBA();
@@ -319,6 +416,9 @@ async function fetchTeamTBADetail(teamNum) {
     panel.style.display = 'none';
     panel.innerHTML = '';
 
+    // Always kick off image fetch in parallel
+    fetchRobotImage(teamNum);
+
     try {
         const [teamRes, awardsRes, eventsRes] = await Promise.all([
             fetchWithTimeout(
@@ -349,7 +449,7 @@ async function fetchTeamTBADetail(teamNum) {
             .sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''))
             .slice(0, 5);
 
-        const website = teamData.website
+        const website  = teamData.website
             ? `<a href="${teamData.website}" target="_blank" style="color:var(--accent);text-decoration:underline;font-size:0.78rem;">${teamData.website.replace(/^https?:\/\//, '')}</a>`
             : '';
 
