@@ -118,14 +118,23 @@
         <label>Scouter Name (你的名字)</label>
         <select id="scouterName">
             <option value="" disabled selected>Select Scouters (選擇姓名)...</option>
-            <option value="郭耘睿 and 林宥均">郭耘睿 and 林宥均</option>
-            <option value="張俊彬 and 裴敬庭">張俊彬 and 裴敬庭</option>
-            <option value="黃浩倫 and 林以澈">黃浩倫 and 林以澈</option>
+            <option value="郭耘睿 林宥均">郭耘睿 林宥均</option>
+            <option value="張俊彬 裴敬庭">張俊彬 裴敬庭</option>
+            <option value="黃浩倫 林以澈">黃浩倫 林以澈</option>
             <option value="李忻叡 戴均翰 justin">李忻叡 戴均翰 justin</option>
-            <option value="莊欣嬡，黃可愛，李苡安，吳衣絜">莊欣嬡，黃可愛，李苡安，吳衣絜</option>
-            <option value="李承峰 and 李昌佑">李承峰 and 李昌佑</option>
+            <option value="莊欣嬡 黃可愛 李苡安 吳衣絜">莊欣嬡 黃可愛 李苡安 吳衣絜</option>
+            <option value="李承峰 李昌佑">李承峰 李昌佑</option>
         </select>
         <div class="error-msg" id="err-name">Please select a name</div>
+
+        <!-- Assignment chips — shown after scouter selection -->
+        <div id="assignmentHint" style="display:none;margin-top:12px;">
+            <div style="font-size:0.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">
+                Your Assigned Teams — tap a number to fill it in
+            </div>
+            <div id="assignmentChips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+            <div id="assignmentProgress" style="margin-top:8px;font-size:0.78rem;"></div>
+        </div>
     </div>
 
     <div class="card">
@@ -133,6 +142,14 @@
         <input type="number" id="teamNum" placeholder="e.g. 6998">
         <div id="teamNameDisplay" class="team-display">Waiting for event selection...</div>
         <div id="duplicateHint" class="duplicate-hint" style="display:none;"></div>
+
+        <!-- Robot image -->
+        <div id="robotImageContainer" style="display:none;margin-top:12px;text-align:center;">
+            <div id="imageLoadingSpinner" style="color:var(--accent);font-size:0.8rem;padding:8px;">🔄 Loading robot image...</div>
+            <img id="robotImage" src="" alt="Robot photo" style="display:none;max-width:100%;max-height:250px;border-radius:8px;border:2px solid var(--accent);object-fit:contain;">
+            <div id="imageStatus" style="display:none;margin-top:8px;font-size:0.8rem;color:var(--text-secondary);background:rgba(255,255,255,0.05);padding:6px 10px;border-radius:6px;text-align:center;"></div>
+        </div>
+
         <!-- TBA team detail panel (injected by tba.js) -->
         <div id="teamTBADetail" style="display:none;"></div>
         <div class="error-msg" id="err-team">Not in Official TBA Roster</div>
