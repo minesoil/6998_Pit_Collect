@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Unipards 2026 Pit Collect</title>
+    <!-- Favicon & PWA -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#D4AF37">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pit Collect">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -59,37 +67,6 @@
             </div>
             <button type="button" class="btn btn-next" style="padding:10px;font-size:0.8rem;width:100%;" onclick="addManualTeam()">+ Add Team</button>
             <div id="manualRosterList" style="margin-top:12px;max-height:160px;overflow-y:auto;"></div>
-        </div>
-
-        <div class="settings-section">
-            <div class="settings-section-title">Scouter Assignments</div>
-            <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:10px;">
-                Assign specific teams from the current event roster to each scouter pair.<br>
-                <span style="color:var(--accent);">Hold Ctrl / Cmd to select multiple teams.</span>
-            </p>
-            <div id="assignmentList" style="margin-bottom:12px;"></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-                <select id="assignScouter" style="flex:2;min-width:140px;">
-                    <option value="">Select scouter...</option>
-					 <option value="郭耘睿 and 林宥均">郭耘睿 and 林宥均</option>
-					 <option value="張俊彬 and 裴敬庭">張俊彬 and 裴敬庭</option>
-					 <option value="黃浩倫 and 林以澈">黃浩倫 and 林以澈</option>
-					 <option value="李忻叡 戴均翰 justin">李忻叡 戴均翰 justin</option>
-					 <option value="莊欣嬡，黃可愛，李苡安，吳衣絜">莊欣嬡，黃可愛，李苡安，吳衣絜</option>
-					 <option value="李承峰 and 李昌佑">李承峰 and 李昌佑</option>
-
-                </select>
-            </div>
-            <div style="margin-bottom:8px;">
-                <label style="font-size:0.75rem;color:var(--text-secondary);display:block;margin-bottom:4px;">
-                    Teams from current event — select one or more:
-                </label>
-                <select id="assignTeamSelect" multiple
-                    style="width:100%;height:160px;background:var(--input-bg);border:1px solid #333;border-radius:10px;color:white;font-size:0.85rem;padding:6px;">
-                    <option disabled>Loading teams...</option>
-                </select>
-            </div>
-            <button type="button" class="btn btn-next" style="padding:10px;font-size:0.8rem;width:100%;" onclick="addAssignment()">+ Assign Selected Teams</button>
         </div>
 
         <div class="settings-section">
@@ -149,7 +126,6 @@
             <option value="李承峰 and 李昌佑">李承峰 and 李昌佑</option>
         </select>
         <div class="error-msg" id="err-name">Please select a name</div>
-        <div id="assignmentHint" class="assignment-hint" style="display:none;"></div>
     </div>
 
     <div class="card">
@@ -159,11 +135,6 @@
         <div id="duplicateHint" class="duplicate-hint" style="display:none;"></div>
         <!-- TBA team detail panel (injected by tba.js) -->
         <div id="teamTBADetail" style="display:none;"></div>
-        <div id="robotImageContainer">
-            <img id="robotImage" alt="Robot Image" crossorigin="anonymous">
-        </div>
-        <div id="imageLoadingSpinner">⏳ Searching for robot image...</div>
-        <div id="imageStatus">No robot image found on TBA (2025/2026)</div>
         <div class="error-msg" id="err-team">Not in Official TBA Roster</div>
     </div>
 </div>
