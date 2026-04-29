@@ -1,6 +1,6 @@
 /* =========================================
    tba.js — The Blue Alliance API Integration
-   Handles: events, team lists, robot images,
+   Handles: events, team lists,
             manual roster, storage guard
 ========================================= */
 
@@ -12,11 +12,7 @@ let EVENTS_DATA = {};
 let TEAM_LIST   = {};
 let CURRENT_EVENT_DETAIL = null;
 
-let TEAM_IMAGES = JSON.parse(localStorage.getItem('TBA_IMAGES_2026_V5') || '{}');
-
 let tbaStatus = "loading";
-let imageFetchTimeout           = null;
-let currentImageFetchController = null;
 
 // ── Manual Roster ──────────────────────────────────────────────────────────
 const MANUAL_ROSTER_KEY = 'MANUAL_ROSTER_2026_V1';
@@ -45,7 +41,6 @@ function addManualTeam() {
     document.getElementById('manualTeamName').value = '';
     renderManualRosterList();
     updateStorageBar();
-    refreshAssignmentTeamSelect();
 
     document.getElementById('teamNum').dispatchEvent(new Event('input'));
 }
@@ -56,7 +51,6 @@ function removeManualTeam(num) {
     safeLocalStorageSet(MANUAL_ROSTER_KEY, JSON.stringify(roster));
     if (TEAM_LIST[num]?.manual) delete TEAM_LIST[num];
     renderManualRosterList();
-    refreshAssignmentTeamSelect();
     document.getElementById('teamNum').dispatchEvent(new Event('input'));
 }
 
@@ -171,7 +165,6 @@ async function fetchEvents() {
     }
 }
 
-// Fetch full event detail (dates, webcasts, district, etc.)
 async function fetchEventDetail(key) {
     CURRENT_EVENT_DETAIL = null;
     try {
@@ -246,7 +239,6 @@ function selectEvent(key) {
     TEAM_LIST = {};
     document.getElementById('teamNameDisplay').innerHTML   = "Switching events...";
     document.getElementById('teamNameDisplay').style.background = "rgba(255,255,255,0.05)";
-    resetImageUI();
     fetchEventDetail(key);
     initTBA();
 }
@@ -317,11 +309,10 @@ async function initTBA() {
     } finally {
         mergeManualRoster();
         document.getElementById('teamNum').dispatchEvent(new Event('input'));
-        refreshAssignmentTeamSelect();
     }
 }
 
-// ── Team Info Panel (shown on team number input) ───────────────────────────
+// ── Team Info Panel ────────────────────────────────────────────────────────
 async function fetchTeamTBADetail(teamNum) {
     const panel = document.getElementById('teamTBADetail');
     if (!panel) return;
@@ -349,16 +340,11 @@ async function fetchTeamTBADetail(teamNum) {
         const awards     = awardsRes.ok ? await awardsRes.json() : [];
         const events2026 = eventsRes.ok ? await eventsRes.json() : [];
 
-        // Count notable awards
         const blueCount   = awards.filter(a => a.award_type === 1).length;
-        const cmpWins     = awards.filter(a => [1,69,70,71,72].includes(a.award_type)).length;
         const totalAwards = awards.length;
+        const rookieYear  = teamData.rookie_year;
+        const yearsExp    = rookieYear ? (2026 - rookieYear) : null;
 
-        // Rookie year / experience
-        const rookieYear = teamData.rookie_year;
-        const yearsExp   = rookieYear ? (2026 - rookieYear) : null;
-
-        // 2026 events
         const eventList = events2026
             .sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''))
             .slice(0, 5);
@@ -402,101 +388,6 @@ async function fetchTeamTBADetail(teamNum) {
     } catch(e) {
         console.warn('fetchTeamTBADetail failed:', e);
     }
-}
-
-// ── Robot Image ────────────────────────────────────────────────────────────
-function resetImageUI() {
-    const imgEl     = document.getElementById('robotImage');
-    const container = document.getElementById('robotImageContainer');
-    const statusEl  = document.getElementById('imageStatus');
-    const spinnerEl = document.getElementById('imageLoadingSpinner');
-    const panel     = document.getElementById('teamTBADetail');
-    imgEl.src               = '';
-    imgEl.style.display     = 'none';
-    container.style.display = 'none';
-    statusEl.style.display  = 'none';
-    spinnerEl.style.display = 'none';
-    if (panel) { panel.style.display = 'none'; panel.innerHTML = ''; }
-}
-
-async function fetchRobotImage(teamNum) {
-    const imgEl     = document.getElementById('robotImage');
-    const container = document.getElementById('robotImageContainer');
-    const statusEl  = document.getElementById('imageStatus');
-    const spinnerEl = document.getElementById('imageLoadingSpinner');
-
-    resetImageUI();
-    if (currentImageFetchController) currentImageFetchController.abort();
-    currentImageFetchController = new AbortController();
-    const signal = currentImageFetchController.signal;
-
-    // Kick off TBA detail fetch in parallel
-    fetchTeamTBADetail(teamNum);
-
-    const cached = TEAM_IMAGES[teamNum];
-    if (cached) { tryLoadImage(imgEl, container, statusEl, cached, teamNum); return; }
-
-    spinnerEl.style.display = 'block';
-
-    try {
-        const [media2026, media2025] = await Promise.all([
-            fetch(`https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/2026`,
-                { headers: { 'X-TBA-Auth-Key': TBA_API_KEY }, signal })
-                .then(r => r.ok ? r.json() : []).catch(() => []),
-            fetch(`https://www.thebluealliance.com/api/v3/team/frc${teamNum}/media/2025`,
-                { headers: { 'X-TBA-Auth-Key': TBA_API_KEY }, signal })
-                .then(r => r.ok ? r.json() : []).catch(() => [])
-        ]);
-        spinnerEl.style.display = 'none';
-        if (signal.aborted) return;
-        const candidateUrls = extractImageUrls(media2026).concat(extractImageUrls(media2025));
-        if (candidateUrls.length === 0) { statusEl.style.display = 'block'; return; }
-        tryNextCandidate(imgEl, container, statusEl, candidateUrls, 0, teamNum);
-    } catch (err) {
-        spinnerEl.style.display = 'none';
-        if (err.name !== 'AbortError') { statusEl.style.display = 'block'; }
-    }
-}
-
-function extractImageUrls(mediaArr) {
-    if (!Array.isArray(mediaArr)) return [];
-    const urls = [];
-    for (const item of mediaArr) {
-        if (item.type === 'imgur') {
-            if (item.view_url)   urls.push(item.view_url);
-            if (item.direct_url) urls.push(item.direct_url);
-        }
-        if (item.direct_url && /\.(jpe?g|png|gif|webp)/i.test(item.direct_url))
-            if (!urls.includes(item.direct_url)) urls.push(item.direct_url);
-    }
-    return urls;
-}
-
-function tryNextCandidate(imgEl, container, statusEl, urls, index, teamNum) {
-    if (index >= urls.length) { statusEl.style.display = 'block'; return; }
-    const url = urls[index], testImg = new Image();
-    testImg.onload = function() {
-        TEAM_IMAGES[teamNum] = url;
-        safeLocalStorageSet('TBA_IMAGES_2026_V5', JSON.stringify(TEAM_IMAGES));
-        imgEl.src = url; imgEl.style.display = 'block';
-        container.style.display = 'block'; statusEl.style.display = 'none';
-    };
-    testImg.onerror = () => tryNextCandidate(imgEl, container, statusEl, urls, index + 1, teamNum);
-    testImg.src = url;
-}
-
-function tryLoadImage(imgEl, container, statusEl, url, teamNum) {
-    const testImg = new Image();
-    testImg.onload = function() {
-        imgEl.src = url; imgEl.style.display = 'block';
-        container.style.display = 'block'; statusEl.style.display = 'none';
-    };
-    testImg.onerror = function() {
-        delete TEAM_IMAGES[teamNum];
-        safeLocalStorageSet('TBA_IMAGES_2026_V5', JSON.stringify(TEAM_IMAGES));
-        fetchRobotImage(teamNum);
-    };
-    testImg.src = url;
 }
 
 // ── Startup ────────────────────────────────────────────────────────────────
