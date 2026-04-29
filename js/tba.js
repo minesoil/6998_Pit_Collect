@@ -146,7 +146,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 6000) {
     }
 }
 
-// ── Robot Images ───────────────────────────────────────────────────────────
+/* ── Robot Images ───────────────────────────────────────────────────────────
 const IMAGE_CACHE_KEY = 'TBA_IMAGES_2026_V5';
 
 function getImageCache() {
@@ -233,7 +233,7 @@ async function fetchRobotImage(teamNum) {
     } catch(e) {
         showNone('📡 Offline — robot image unavailable');
     }
-}
+}*/
 
 // ── Events ─────────────────────────────────────────────────────────────────
 async function fetchEvents() {
@@ -417,7 +417,7 @@ async function fetchTeamTBADetail(teamNum) {
     panel.innerHTML = '';
 
     // Always kick off image fetch in parallel
-    fetchRobotImage(teamNum);
+    //fetchRobotImage(teamNum);
 
     try {
         const [teamRes, awardsRes, eventsRes] = await Promise.all([
