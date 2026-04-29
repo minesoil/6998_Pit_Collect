@@ -1,0 +1,17 @@
+{
+  "name": "Unipards 2026 Pit Collect",
+  "short_name": "Pit Collect",
+  "description": "FRC Team 6998 Mobile Pit Scouting App",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#D4AF37",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
