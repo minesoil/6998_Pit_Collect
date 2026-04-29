@@ -6,6 +6,7 @@
 
 const SCOUTED_KEY  = 'SCOUTED_TEAMS_2026_V1';
 const QR_VERSION   = 'v2';
+let _editingTeamNum = null;   // set during edit prefill to suppress duplicate checks
 
 function getScoutedTeams() {
     try { return JSON.parse(localStorage.getItem(SCOUTED_KEY) || '[]'); } catch(e) { return []; }
@@ -307,6 +308,8 @@ function editEntry(teamNum) {
     const entry = getScoutedEntry(teamNum);
     if (!entry) return;
 
+    _editingTeamNum = String(teamNum);   // ← suppress duplicate warning during prefill
+
     document.querySelector('.page.active').classList.remove('active');
     currentPage = 0;
     document.getElementById('page0').classList.add('active');
@@ -316,7 +319,10 @@ function editEntry(teamNum) {
     document.body.style.paddingBottom = '100px';
     window.scrollTo(0, 0);
 
-    setTimeout(() => prefillForm(entry), 50);
+    setTimeout(() => {
+        prefillForm(entry);
+        _editingTeamNum = null;   // ← clear after prefill finishes
+    }, 50);
 }
 
 function prefillForm(e) {
