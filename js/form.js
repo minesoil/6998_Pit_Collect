@@ -35,11 +35,53 @@ function closeSettings() {
     document.getElementById('settingsPanel').style.display = 'none';
 }
 
+// ── Assignment Hint (shows scouter's team chips on Step 1) ─────────────────
+function updateAssignmentHint() {
+    const scouter = document.getElementById('scouterName').value;
+    const hint    = document.getElementById('assignmentHint');
+    const chips   = document.getElementById('assignmentChips');
+    const prog    = document.getElementById('assignmentProgress');
+
+    if (!scouter || !SCOUTER_ASSIGNMENTS[scouter]) {
+        hint.style.display = 'none';
+        return;
+    }
+
+    const teams   = SCOUTER_ASSIGNMENTS[scouter];
+    const done    = teams.filter(n => isTeamScouted(n));
+    const pct     = teams.length ? Math.round(done.length / teams.length * 100) : 0;
+
+    hint.style.display = 'block';
+
+    chips.innerHTML = teams.map(n => {
+        const isDone = isTeamScouted(n);
+        return `<span class="assign-chip${isDone ? ' assign-chip--done' : ''}"
+            onclick="fillTeamFromAssignment(${n})"
+            title="${isDone ? '✓ Scouted' : 'Tap to scout'}">${isDone ? '✓' : ''} ${n}</span>`;
+    }).join('');
+
+    prog.innerHTML = `
+        <span style="color:${done.length === teams.length ? 'var(--success)' : 'var(--accent)'};">
+            ${done.length === teams.length ? '🎉 All done!' : `${done.length} / ${teams.length} scouted (${pct}%)`}
+        </span>
+    `;
+}
+
+function fillTeamFromAssignment(teamNum) {
+    const input = document.getElementById('teamNum');
+    input.value = teamNum;
+    input.dispatchEvent(new Event('input'));
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 // ── Duplicate Modal ────────────────────────────────────────────────────────
 let _duplicateTeamNum = null;
 
 function checkDuplicate(teamNum) {
     if (!teamNum) return;
+    // Skip during edit prefill — the flag is set in qr.js editEntry()
+    if (typeof _editingTeamNum !== 'undefined' && _editingTeamNum === String(teamNum)) return;
+
     const entry = getScoutedEntry(String(teamNum));
     const hint  = document.getElementById('duplicateHint');
     if (entry) {
@@ -151,6 +193,12 @@ setupOtherToggle('intakeOtherTrigger', 'intakeOtherBox');
 setupOtherToggle('visOtherTrigger',    'visOtherBox');
 setupOtherToggle('visSoftOtherTrigger','visSoftOtherBox');
 
+// ── Scouter Name Change → show assignment chips ────────────────────────────
+document.getElementById('scouterName').addEventListener('change', function() {
+    updateAssignmentHint();
+    updateNavButtons();
+});
+
 // ── Event Autocomplete ─────────────────────────────────────────────────────
 const eventSearchInput = document.getElementById('eventSearch');
 const eventDropdown    = document.getElementById('eventDropdown');
@@ -187,8 +235,11 @@ document.addEventListener('click', e => {
 
 // ── Team Number Input ──────────────────────────────────────────────────────
 document.getElementById('teamNum').addEventListener('input', function() {
-    const num  = this.value;
+    const num  = this.value.trim();
     const disp = document.getElementById('teamNameDisplay');
+
+    // Hide robot image when field is cleared
+    const imgCont = document.getElementById('robotImageContainer');
 
     checkDuplicate(num);
 
@@ -200,28 +251,54 @@ document.getElementById('teamNum').addEventListener('input', function() {
                 <div style="font-size:0.8rem;color:#333;font-weight:600;">📍 ${team.location}</div>
             `;
             disp.style.background = "var(--accent)";
-            // Fetch TBA detail panel
+            disp.style.color      = "#000";
+            if (imgCont) imgCont.style.display = 'none';
             fetchTeamTBADetail(num);
         } else {
             const panel = document.getElementById('teamTBADetail');
             if (panel) { panel.style.display = 'none'; panel.innerHTML = ''; }
-            disp.textContent      = num ? (tbaStatus === "empty" ? `Team ${num} (TBA list empty)` : "Not in TBA Official List") : "Waiting for input...";
-            disp.style.color      = num ? (tbaStatus === "empty" ? "#000" : "var(--danger)") : "var(--accent)";
-            disp.style.background = num && tbaStatus === "empty" ? "var(--accent)" : "rgba(255,255,255,0.05)";
+            if (imgCont) imgCont.style.display = 'none';
+
+            if (!num) {
+                disp.textContent      = "Waiting for input...";
+                disp.style.color      = "var(--accent)";
+                disp.style.background = "rgba(255,255,255,0.05)";
+            } else if (tbaStatus === "empty") {
+                disp.innerHTML        = `<div>Team ${num}</div><div style="font-size:0.75rem;opacity:0.8;">TBA list empty for this event</div>`;
+                disp.style.color      = "#000";
+                disp.style.background = "var(--accent)";
+            } else {
+                disp.textContent      = "Not in TBA Official List";
+                disp.style.color      = "var(--danger)";
+                disp.style.background = "rgba(255,68,68,0.1)";
+            }
         }
     } else if (tbaStatus === "loading") {
-        disp.textContent      = "Fetching TBA Teams...";
+        if (imgCont) imgCont.style.display = 'none';
+        disp.textContent      = "⏳ Verifying with TBA...";
         disp.style.color      = "var(--accent)";
         disp.style.background = "rgba(255,255,255,0.05)";
     } else {
-        disp.textContent      = num ? `Team ${num} (Offline Mode)` : "API Error. Enter any team.";
-        disp.style.color      = num ? "#000" : "var(--danger)";
-        disp.style.background = num ? "var(--accent)" : "rgba(255,68,68,0.1)";
+        // Offline / error — accept any numeric entry
+        const panel = document.getElementById('teamTBADetail');
+        if (panel) { panel.style.display = 'none'; panel.innerHTML = ''; }
+        if (imgCont) imgCont.style.display = 'none';
+
+        if (num) {
+            disp.innerHTML        = `<div style="font-size:1rem;">✓ Team ${num}</div><div style="font-size:0.75rem;opacity:0.8;">📡 Offline mode — TBA unavailable</div>`;
+            disp.style.color      = "#000";
+            disp.style.background = "var(--accent)";
+        } else {
+            disp.textContent      = "📡 Offline — enter any team number";
+            disp.style.color      = "var(--accent)";
+            disp.style.background = "rgba(255,255,255,0.05)";
+        }
     }
 
     updateNavButtons();
 });
 
+// Watch other inputs for nav button state
 [
     'scouterName','weight','capacity','preload','autoTotal',
     'climbTime','intakeOtherVal','visOtherVal','visSoftOtherVal',
@@ -259,9 +336,11 @@ function updateNavButtons() {
             document.getElementById('err-team').style.display = 'none';
             isValid = false;
         } else if (tbaStatus === "loaded" && !TEAM_LIST[team]) {
+            // Only block when TBA is fully loaded and team genuinely not found
             document.getElementById('err-team').style.display = 'block';
             isValid = false;
         } else {
+            // loading / error / empty / team found — all allowed
             document.getElementById('err-team').style.display = 'none';
         }
     }
@@ -323,9 +402,9 @@ function updateNavButtons() {
             document.getElementById('preload').classList.add('violation');
             isValid = false;
         } else if (autoTotal < 0 || autoTotal > 499) {
-            document.getElementById('err-preload').style.display = 'none';
+            errEl.style.display = 'none';
             document.getElementById('preload').classList.remove('violation');
-            if (autoTotal < 0 || autoTotal > 499) isValid = false;
+            isValid = false;
         } else {
             errEl.style.display = 'none';
             document.getElementById('preload').classList.remove('violation');
@@ -352,7 +431,8 @@ function updateNavButtons() {
 function navigate(dir) {
     if (dir === 1 && document.getElementById('nextBtn').disabled) return;
 
-    if (dir === 1 && currentPage === 0) {
+    // Skip duplicate modal when editing an existing entry
+    if (dir === 1 && currentPage === 0 && !_editingTeamNum) {
         const teamNum = document.getElementById('teamNum').value.trim();
         if (showDuplicateModal(teamNum)) return;
     }
@@ -476,7 +556,11 @@ function resetForm() {
     disp.style.color      = "var(--accent)";
     disp.style.background = "rgba(255,255,255,0.05)";
 
+    const imgCont = document.getElementById('robotImageContainer');
+    if (imgCont) imgCont.style.display = 'none';
+
     document.getElementById('duplicateHint').style.display  = 'none';
+    document.getElementById('assignmentHint').style.display = 'none';
     document.getElementById('notesCounter').innerText       = '0 / 300';
 
     const panel = document.getElementById('teamTBADetail');
