@@ -167,6 +167,8 @@ function generatePathQR() {
     const teamNum   = document.getElementById('teamNum').value;
     const teamName  = TEAM_LIST[teamNum]?.name ?? "";
     const eventCode = EVENT_KEY.toUpperCase();
+   // In generatePathQR
+   
 
     document.getElementById('pathQrTeamText').innerText   = `Team ${teamNum}`;
     document.getElementById('pathQrHeader').style.display = "block";
@@ -178,7 +180,7 @@ function generatePathQR() {
     strokes.forEach((stroke, index) => {
     if (stroke.length < 1) return;
        // Simplify the stroke before generating QR
-       const simplified = simplifyPath(stroke, 2); // Try epsilon=2, adjust to taste
+       const simplified = simplifyPath(stroke, 3); // Try epsilon=3
        const MAX_POINTS = 32; // (Optional, safety limit)
        const pathString = simplified.slice(0, MAX_POINTS).map(p => `${Math.round(p.x)},${Math.round(p.y)}`).join('|');
        const compressed = LZString.compressToBase64(
