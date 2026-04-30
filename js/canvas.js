@@ -141,7 +141,8 @@ function addPoint(pixelX, pixelY) {
     const yPct = toYPct(pixelY);
     if (currentStroke.length > 0) {
         const last = currentStroke[currentStroke.length - 1];
-        if (Math.hypot(xPct - last.x, yPct - last.y) < 4.0) return; // Increased to 8.0 for fewer points per stroke
+        // Lower threshold for more accurate curves/paths
+        if (Math.hypot(xPct - last.x, yPct - last.y) < 2.0) return;
     }
     currentStroke.push({ x: xPct, y: yPct });
 }
