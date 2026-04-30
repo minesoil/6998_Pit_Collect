@@ -138,7 +138,29 @@ function generateQR() {
     updateAssignmentHint();   // refresh chip checkmarks
     updateStorageBar();
 }
-
+// Ramer–Douglas–Peucker path simplification for 0–100 coordinate system
+function simplifyPath(points, epsilon = 2) {
+    if (points.length < 3) return points.slice();
+    let maxDist = 0, index = 0;
+    const start = points[0], end = points[points.length - 1];
+    for (let i = 1; i < points.length - 1; i++) {
+        // Perpendicular from segment start–end to point[i]
+        const x0 = start.x, y0 = start.y;
+        const x1 = end.x, y1 = end.y;
+        const x  = points[i].x, y = points[i].y;
+        const num = Math.abs((y1 - y0) * x - (x1 - x0) * y + x1 * y0 - y1 * x0);
+        const den = Math.sqrt((y1 - y0) ** 2 + (x1 - x0) ** 2) || 1;
+        const dist = num / den;
+        if (dist > maxDist) { maxDist = dist; index = i; }
+    }
+    if (maxDist > epsilon) {
+        const left = simplifyPath(points.slice(0, index + 1), epsilon);
+        const right = simplifyPath(points.slice(index), epsilon);
+        return left.concat(right.slice(1));
+    } else {
+        return [start, end];
+    }
+}
 function generatePathQR() {
     if (strokes.length === 0) { alert("Please draw at least one path segment or place a dot."); return; }
 
@@ -154,11 +176,15 @@ function generatePathQR() {
     qrContainer.style.display = 'block';
 
     strokes.forEach((stroke, index) => {
-        if (stroke.length < 1) return;
-        const pathString = stroke.map(p => `${Math.round(p.x)},${Math.round(p.y)}`).join('|');
-        const compressed = LZString.compressToBase64(
-            [QR_VERSION, eventCode, '0', teamNum, pathString].join('\t')
-        );
+    if (stroke.length < 1) return;
+       // Simplify the stroke before generating QR
+       const simplified = simplifyPath(stroke, 2); // Try epsilon=2, adjust to taste
+       const MAX_POINTS = 32; // (Optional, safety limit)
+       const pathString = simplified.slice(0, MAX_POINTS).map(p => `${Math.round(p.x)},${Math.round(p.y)}`).join('|');
+       const compressed = LZString.compressToBase64(
+        [QR_VERSION, eventCode, '0', teamNum, pathString].join('\t')
+    );
+    
 
         const wrapper   = document.createElement('div');
         wrapper.style.cssText = "margin-bottom:20px;padding:15px;background:#fff;border-radius:10px;color:#000;text-align:center;";
