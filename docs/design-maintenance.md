@@ -1,25 +1,36 @@
 # Design maintenance
 
-This pass keeps Pit Collect's black and gold theme, bilingual labels, page order,
-and scouting workflow. The changes are deliberately small because this is an
-existing competition tool.
+Pit Collect keeps its black and gold theme, bilingual labels, page order, and
+scouting workflow. The interface now follows a field worksheet: continuous form
+sections, visible checkbox and radio marks, and a compact aligned header.
 
 ## Research behind the changes
 
-- [NN/g: Good Visual Design, Explained](https://www.nngroup.com/articles/good-visual-design/)
-  recommends clear hierarchy, alignment, and consistent visual choices. The
-  interface keeps Lexend and its existing colors, with calmer heading and button
-  weights and the original text casing.
-- [NN/g: Aesthetic and Minimalist Design](https://www.nngroup.com/articles/aesthetic-minimalist-design/)
-  distinguishes useful information from distracting decoration. Card shadows,
-  selection glows, and large corner radii were reduced; controls and information
-  remain in their original places.
-- [GOV.UK: Spacing](https://design-system.service.gov.uk/styles/spacing/)
-  supports consistent spacing. Existing widths, padding, gaps, and margins are
-  retained here, including the drawing surface's dimensions.
-- [USWDS: Design principles](https://designsystem.digital.gov/design-principles/)
-  recommends continuity and minimizing disruption. No fields, features, page
-  steps, or dependencies were added or removed.
+- [Carbon: Forms](https://www.carbondesignsystem.com/building-blocks/core/patterns/forms)
+  recommends clear group headings, logical order, aligned controls, and distinct
+  primary actions. The form uses section headings and neutral dividing rules;
+  the fixed navigation stays within the form's visual width on desktop.
+- [Carbon: Typography](https://www.carbondesignsystem.com/building-blocks/foundations/typography/type-sets)
+  distinguishes productive UI type from expressive presentation type. Data entry
+  uses the system UI font and a small fixed type scale. QR and drawing screens
+  retain Lexend, including the existing canvas text.
+- [NN/g: Cards](https://www.nngroup.com/articles/cards-component/)
+  describes cards as summaries that usually lead to more detail. Our design
+  inference is that ordinary form questions do not need an enclosing card.
+  Their original boxes remain in the DOM, with transparent paint and separators.
+- [GOV.UK: Checkboxes](https://design-system.service.gov.uk/components/checkboxes/)
+  and [radios](https://design-system.service.gov.uk/components/radios/) use visible
+  controls beside labels. Pit Collect exposes its existing native inputs while
+  keeping each label clickable. Square and round marks now distinguish multiple
+  selection from single selection.
+- [The Next Default](https://www.claudiavaduvescu.com/en/articles/the-next-default)
+  is a designer's opinion essay, not peer-reviewed research. It argues that
+  avoiding a checklist of AI styles creates another default. The choice here is
+  a practical competition worksheet tied to Unipards' existing identity.
+
+Gold is reserved mainly for identity, links, selections, focus, and primary
+actions. Successful event and team details use the existing dark surface and
+readable metadata; invalid-team messages retain their red styling.
 
 ## Display safety
 
@@ -39,6 +50,12 @@ TBA profile rendering therefore remain outside this safety patch.
 - Storage keys, entry fields, CSV headers and escaping, QR version and field order.
 - Weight conversion, compression libraries, path simplification, and rounding.
 - Canvas dimensions and coordinate mapping; QR sizes, colors, and white padding.
+
+This visual pass changes only CSS and this document. HTML and all JavaScript are
+unchanged from the prior draft. Canvas ancestor widths, padding, and borders are
+preserved, and the QR/drawing cards keep their previous geometry.
+The drawing page also retains its earlier header and section-title dimensions so
+the redesign does not introduce a scrollbar that changes canvas width.
 
 ## Checks
 

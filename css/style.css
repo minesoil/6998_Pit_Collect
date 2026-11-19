@@ -17,41 +17,53 @@
 /* =========================================
    RESET & BASE
 ========================================= */
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Lexend', sans-serif; -webkit-tap-highlight-color: transparent; }
-body { background-color: var(--bg-deep); color: var(--text-main); padding-bottom: 100px; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: inherit; -webkit-tap-highlight-color: transparent; }
+body { background-color: var(--bg-deep); color: var(--text-main); padding-bottom: 100px; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+/* Keep the existing type treatment on the QR and drawing screens. */
+#page4, #page5 { font-family: 'Lexend', sans-serif; }
 
 /* =========================================
    HEADER
 ========================================= */
 header {
-    background: var(--bg-card);
-    padding: 15px; text-align: center;
-    border-bottom: 2px solid var(--accent);
+    background: var(--bg-deep);
+    padding: 16px 20px 12px; text-align: left;
+    display: flex; flex-direction: column;
+    border-bottom: 1px solid var(--accent);
     position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
-header h1 { color: var(--accent); font-weight: 600; letter-spacing: 0; font-size: 1.2rem; margin: 0; }
-.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.7rem; }
+header h1 { order: -1; color: var(--accent); font-weight: 700; letter-spacing: 0; font-size: 1.125rem; max-width: 610px; width: 100%; margin: 0 auto; }
+.header-top { display: flex; justify-content: space-between; align-items: center; max-width: 610px; width: 100%; margin: 10px auto 0; font-size: 0.8125rem; }
 .header-left  { flex: 1; text-align: left; }
-.header-center{ flex: 1; text-align: center; }
+.header-center{ flex: 0 0 auto; text-align: center; }
 .header-right { flex: 1; text-align: right; }
 
 .clock-display { color: var(--text-secondary); font-weight: 400; font-variant-numeric: tabular-nums; }
 .fs-btn {
-    font-size: 0.65rem; color: var(--accent); border: 1px solid var(--accent);
-    padding: 3px 6px; border-radius: 4px; font-weight: 600; cursor: pointer;
+    font-size: 0.8125rem; color: var(--text-main); border: 1px solid #333;
+    min-width: 36px; min-height: 36px; padding: 6px 9px; border-radius: 2px; font-weight: 400; cursor: pointer; white-space: nowrap;
     background: transparent; transition: background 0.2s ease, color 0.2s ease;
 }
 .fs-btn:hover  { background: var(--accent); color: var(--bg-deep); }
 .fs-btn:active { transform: scale(0.95); }
-.counter-badge { display: inline-block; font-size: 0.7rem; color: var(--accent); border: 1px solid var(--accent); padding: 3px 6px; border-radius: 4px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.counter-badge { display: inline-block; font-size: 0.8125rem; color: var(--text-secondary); font-weight: 400; font-variant-numeric: tabular-nums; }
 
+/* Preserve the drawing page's height as well as width at scrollbar thresholds. */
+body:has(#page5.active) header {
+    display: block; padding: 15px; text-align: center; background: var(--bg-card);
+    border-bottom-width: 2px; font-family: 'Lexend', sans-serif;
+}
+body:has(#page5.active) header h1 { max-width: none; width: auto; margin: 0; font-size: 1.2rem; font-weight: 600; }
+body:has(#page5.active) .header-top { max-width: none; width: auto; margin: 0 0 10px; font-size: 0.7rem; }
+body:has(#page5.active) .header-center { flex: 1; }
+body:has(#page5.active) .fs-btn { min-width: 0; min-height: 0; font-size: 0.65rem; padding: 3px 6px; font-weight: 600; }
+body:has(#page5.active) .counter-badge { font-size: 0.7rem; border: 1px solid var(--accent); padding: 3px 6px; font-weight: 600; }
 @media (max-width: 600px) {
-    header { padding: 12px; }
-    header h1 { font-size: 1rem; }
-    .header-top { font-size: 0.6rem; }
-    .fs-btn { font-size: 0.55rem; padding: 2px 4px; }
-    .counter-badge { font-size: 0.6rem; padding: 2px 4px; }
+    body:has(#page5.active) header { padding: 12px; }
+    body:has(#page5.active) header h1 { font-size: 1rem; }
+    body:has(#page5.active) .header-top { font-size: 0.6rem; }
+    body:has(#page5.active) .fs-btn { font-size: 0.55rem; padding: 2px 4px; }
+    body:has(#page5.active) .counter-badge { font-size: 0.6rem; padding: 2px 4px; }
 }
 
 /* =========================================
@@ -60,6 +72,7 @@ header h1 { color: var(--accent); font-weight: 600; letter-spacing: 0; font-size
 .container { max-width: 650px; margin: 0 auto; padding: 20px; }
 .page { display: none; animation: fadeIn 0.4s ease; }
 .page.active { display: block; }
+.page:not(#page5) { animation: none; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -67,27 +80,40 @@ header h1 { color: var(--accent); font-weight: 600; letter-spacing: 0; font-size
    SECTION TITLE & CARD
 ========================================= */
 .section-title {
-    color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;
-    margin: 25px 0 10px 5px; border-left: 3px solid var(--accent); padding-left: 10px;
+    color: var(--text-main); font-size: 1.125rem; font-weight: 600;
+    margin: 24px 21px 12px;
+}
+#page5 .section-title {
+    font-size: 0.85rem; color: var(--text-secondary); margin: 25px 0 10px 5px;
+    border-left: 3px solid var(--accent); padding-left: 10px;
 }
 .card {
     background: var(--bg-card); border-radius: 8px; padding: 20px; margin-bottom: 15px;
     border: 1px solid var(--border); position: relative;
 }
+/* Ordinary questions form a worksheet; output screens retain their geometry. */
+:is(#page0, #page1, #page2, #page3) > .card {
+    background: transparent;
+    border-radius: 0;
+    border-color: transparent;
+    border-bottom-color: #333;
+}
 
 /* =========================================
    FORM ELEMENTS
 ========================================= */
-label      { display: block; font-size: 0.9rem; margin-bottom: 8px; font-weight: 600; color: var(--text-main); }
-.sub-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px; display: block; }
+label      { display: block; font-size: 1rem; margin-bottom: 8px; font-weight: 500; color: var(--text-main); }
+.sub-label { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 8px; display: block; line-height: 1.4; }
 
 input[type="text"], input[type="number"], select, textarea {
     width: 100%; padding: 14px; background: var(--input-bg);
-    border: 1px solid #333; border-radius: 6px;
+    border: 1px solid #333; border-radius: 2px;
     color: white; font-size: 1rem; outline: none; transition: border-color 0.15s;
 }
 input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 2px; }
 button:focus-visible, .toggle-btn:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 3px; }
+#teamNum { max-width: 12ch; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+#capacity, #preload, #autoTotal, #climbTime, #yawFreedomVal, #pitchFreedomVal { max-width: 14ch; font-variant-numeric: tabular-nums; }
 .violation { border-color: var(--danger) !important; background: rgba(255,68,68,0.1) !important; }
 .error-msg { color: var(--danger); font-size: 0.75rem; font-weight: bold; margin-top: 5px; display: none; }
 .profanity-alert {
@@ -150,6 +176,27 @@ button:focus-visible, .toggle-btn:has(input:focus-visible) { outline: 2px solid 
     background: rgba(255,215,0,0.15); border-color: var(--accent);
     color: var(--accent);
 }
+:is(#page1, #page2, #page3) .grid-select {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 4px 12px;
+}
+:is(#page1, #page2, #page3) .toggle-btn {
+    min-height: 48px; padding: 12px 10px 12px 40px;
+    margin-bottom: 0; background: transparent; border-color: transparent; border-radius: 2px;
+    text-align: left; font-weight: 400; color: var(--text-main); line-height: 1.4;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+:is(#page1, #page2, #page3) .toggle-btn input {
+    left: 12px; top: 14px; width: 18px; height: 18px; opacity: 1;
+    accent-color: var(--accent);
+}
+:is(#page1, #page2, #page3) .toggle-btn:has(input:checked) {
+    border-color: transparent; background: transparent; color: var(--accent);
+}
+.toggle-btn input:focus { outline: none; }
+#page1 .grid-select:has(input[name="turretType"]) { grid-template-columns: 1fr !important; }
+@media (max-width: 600px) {
+    :is(#page1, #page2, #page3) .grid-select { grid-template-columns: 1fr !important; }
+}
 
 /* =========================================
    NAV BAR
@@ -157,7 +204,7 @@ button:focus-visible, .toggle-btn:has(input:focus-visible) { outline: 2px solid 
 .nav-bar {
     position: fixed; bottom: 0; left: 0; width: 100%;
     background: rgba(10,10,10,0.95);
-    padding: 15px 20px; display: flex; gap: 15px;
+    padding: 15px 20px; display: flex; gap: 15px; justify-content: center;
     border-top: 1px solid #333; z-index: 1000;
 }
 .btn { flex: 1; padding: 16px; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform 0.1s; }
@@ -165,6 +212,9 @@ button:focus-visible, .toggle-btn:has(input:focus-visible) { outline: 2px solid 
 .btn-back     { background: #2a2a2a; color: #fff; }
 .btn-next     { background: var(--accent); color: #000; }
 .btn-next:disabled { background: #444; color: #888; opacity: 0.7; cursor: not-allowed; }
+.nav-bar > .btn { flex: 0 1 295px; min-width: 0; border-radius: 2px; }
+#page0 .btn { border-radius: 2px; }
+#page0 .btn-next { background: transparent; border: 1px solid #333; color: var(--text-main); }
 
 /* =========================================
    FIELD CANVAS
@@ -195,6 +245,25 @@ button:focus-visible, .toggle-btn:has(input:focus-visible) { outline: 2px solid 
     background: white; padding: 15px; border-radius: 10px;
     margin: 20px auto; width: fit-content; display: none;
 }
+/* TBA supplies inline success colors. Keep those overrides out of error states. */
+#eventStatusDisplay[style*="background: var(--accent)"],
+#teamNameDisplay[style*="background: var(--accent)"] {
+    background: var(--bg-card) !important; color: var(--text-main) !important;
+    border-radius: 2px !important;
+}
+#eventStatusDisplay > div:first-child,
+#teamNameDisplay[style*="background: var(--accent)"] > div:first-child {
+    color: var(--text-main) !important; font-weight: 600 !important;
+}
+#eventStatusDisplay > div:not(:first-child),
+#teamNameDisplay[style*="background: var(--accent)"] > div:not(:first-child) {
+    color: var(--text-secondary) !important; font-weight: 400 !important;
+    font-size: 0.8125rem !important; opacity: 1 !important; line-height: 1.5;
+}
+#eventStatusDisplay a { color: var(--accent) !important; font-weight: 400; }
+#assignmentHint > div:first-child { text-transform: none !important; letter-spacing: 0 !important; font-size: 0.8125rem !important; font-weight: 400 !important; }
+.assign-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 40px; padding: 6px 10px; border: 1px solid #333; border-radius: 2px; cursor: pointer; font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.assign-chip--done { color: var(--accent); border-color: var(--accent); }
 
 /* =========================================
    ROBOT IMAGE
