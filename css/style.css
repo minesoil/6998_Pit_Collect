@@ -24,31 +24,31 @@ body { background-color: var(--bg-deep); color: var(--text-main); padding-bottom
    HEADER
 ========================================= */
 header {
-    background: linear-gradient(180deg, #1a1a20 0%, var(--bg-deep) 100%);
+    background: var(--bg-card);
     padding: 15px; text-align: center;
     border-bottom: 2px solid var(--accent);
     position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
-header h1 { color: var(--accent); font-weight: 800; letter-spacing: 2px; font-size: 1.2rem; text-transform: uppercase; margin: 0; }
+header h1 { color: var(--accent); font-weight: 600; letter-spacing: 0; font-size: 1.2rem; margin: 0; }
 .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.7rem; }
 .header-left  { flex: 1; text-align: left; }
 .header-center{ flex: 1; text-align: center; }
 .header-right { flex: 1; text-align: right; }
 
-.clock-display { color: var(--text-secondary); letter-spacing: 1px; font-weight: 300; }
+.clock-display { color: var(--text-secondary); font-weight: 400; font-variant-numeric: tabular-nums; }
 .fs-btn {
     font-size: 0.65rem; color: var(--accent); border: 1px solid var(--accent);
-    padding: 3px 6px; border-radius: 6px; font-weight: 600; cursor: pointer;
-    background: transparent; transition: all 0.2s ease; text-transform: uppercase;
+    padding: 3px 6px; border-radius: 4px; font-weight: 600; cursor: pointer;
+    background: transparent; transition: background 0.2s ease, color 0.2s ease;
 }
 .fs-btn:hover  { background: var(--accent); color: var(--bg-deep); }
 .fs-btn:active { transform: scale(0.95); }
-.counter-badge { font-size: 0.7rem; color: var(--accent); border: 1px solid var(--accent); padding: 3px 6px; border-radius: 6px; font-weight: 600; }
+.counter-badge { display: inline-block; font-size: 0.7rem; color: var(--accent); border: 1px solid var(--accent); padding: 3px 6px; border-radius: 4px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 @media (max-width: 600px) {
     header { padding: 12px; }
-    header h1 { font-size: 1rem; letter-spacing: 1px; }
+    header h1 { font-size: 1rem; }
     .header-top { font-size: 0.6rem; }
     .fs-btn { font-size: 0.55rem; padding: 2px 4px; }
     .counter-badge { font-size: 0.6rem; padding: 2px 4px; }
@@ -67,13 +67,12 @@ header h1 { color: var(--accent); font-weight: 800; letter-spacing: 2px; font-si
    SECTION TITLE & CARD
 ========================================= */
 .section-title {
-    color: var(--text-secondary); font-size: 0.85rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;
     margin: 25px 0 10px 5px; border-left: 3px solid var(--accent); padding-left: 10px;
 }
 .card {
-    background: var(--bg-card); border-radius: 16px; padding: 20px; margin-bottom: 15px;
-    border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative;
+    background: var(--bg-card); border-radius: 8px; padding: 20px; margin-bottom: 15px;
+    border: 1px solid var(--border); position: relative;
 }
 
 /* =========================================
@@ -84,10 +83,11 @@ label      { display: block; font-size: 0.9rem; margin-bottom: 8px; font-weight:
 
 input[type="text"], input[type="number"], select, textarea {
     width: 100%; padding: 14px; background: var(--input-bg);
-    border: 1px solid #333; border-radius: 10px;
-    color: white; font-size: 1rem; outline: none; transition: 0.3s;
+    border: 1px solid #333; border-radius: 6px;
+    color: white; font-size: 1rem; outline: none; transition: border-color 0.15s;
 }
-input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(255,215,0,0.1); }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 2px; }
+button:focus-visible, .toggle-btn:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 3px; }
 .violation { border-color: var(--danger) !important; background: rgba(255,68,68,0.1) !important; }
 .error-msg { color: var(--danger); font-size: 0.75rem; font-weight: bold; margin-top: 5px; display: none; }
 .profanity-alert {
@@ -141,14 +141,14 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 .grid-select { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 10px; }
 .toggle-btn {
     background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-    padding: 15px 10px; border-radius: 12px; cursor: pointer;
+    padding: 15px 10px; border-radius: 6px; cursor: pointer;
     text-align: center; font-size: 0.9rem; font-weight: 600;
     transition: all 0.2s ease; position: relative; overflow: hidden; color: var(--text-secondary);
 }
 .toggle-btn input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
 .toggle-btn:has(input:checked) {
     background: rgba(255,215,0,0.15); border-color: var(--accent);
-    color: var(--accent); box-shadow: 0 0 15px rgba(255,215,0,0.2);
+    color: var(--accent);
 }
 
 /* =========================================
@@ -156,11 +156,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 ========================================= */
 .nav-bar {
     position: fixed; bottom: 0; left: 0; width: 100%;
-    background: rgba(10,10,10,0.95); backdrop-filter: blur(10px);
+    background: rgba(10,10,10,0.95);
     padding: 15px 20px; display: flex; gap: 15px;
     border-top: 1px solid #333; z-index: 1000;
 }
-.btn { flex: 1; padding: 16px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: transform 0.1s; }
+.btn { flex: 1; padding: 16px; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform 0.1s; }
 .btn:active   { transform: scale(0.98); }
 .btn-back     { background: #2a2a2a; color: #fff; }
 .btn-next     { background: var(--accent); color: #000; }
@@ -186,10 +186,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
    TEAM DISPLAY & QR
 ========================================= */
 .team-display {
-    margin-top: 10px; font-size: 0.9rem; font-weight: bold; color: var(--accent);
+    margin-top: 10px; font-size: 0.9rem; font-weight: 600; color: var(--accent);
     display: block; width: 100%; padding: 12px 15px;
     background: rgba(255,215,0,0.1); border-radius: 8px;
-    transition: all 0.3s ease; text-align: center;
+    transition: all 0.3s ease; text-align: left;
 }
 #qrcode, #qrcodePath {
     background: white; padding: 15px; border-radius: 10px;
@@ -214,13 +214,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 }
 .modal-box {
     background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 20px; padding: 28px; max-width: 460px; width: 100%;
+    border-radius: 10px; padding: 28px; max-width: 460px; width: 100%;
     box-shadow: 0 20px 60px rgba(0,0,0,0.8); animation: fadeIn 0.2s ease;
     max-height: 90vh; overflow-y: auto;
 }
 .modal-box--large { max-width: 560px; }
 .modal-icon   { font-size: 2.5rem; text-align: center; margin-bottom: 10px; }
-.modal-title  { color: var(--accent); font-size: 1.2rem; font-weight: 800; text-align: center; margin-bottom: 10px; }
+.modal-title  { color: var(--accent); font-size: 1.2rem; font-weight: 600; text-align: center; margin-bottom: 10px; }
 .modal-body   { color: var(--text-secondary); font-size: 0.9rem; text-align: center; margin-bottom: 20px; line-height: 1.5; }
 .modal-actions { display: flex; gap: 12px; }
 .modal-close-btn {
@@ -235,7 +235,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 ========================================= */
 .settings-section { margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #222; }
 .settings-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.settings-section-title { font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.settings-section-title { font-size: 0.8rem; font-weight: 600; color: var(--accent); margin-bottom: 10px; }
 
 /* Assignment multi-select scrollbar */
 #assignTeamSelect option { padding: 4px 6px; }
@@ -246,11 +246,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 ========================================= */
 .scouted-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #222; }
 .scouted-row:last-child { border-bottom: none; }
-.scouted-num { font-size: 1.3rem; font-weight: 800; color: var(--accent); min-width: 52px; text-align: center; background: rgba(212,175,55,0.1); border-radius: 8px; padding: 6px 4px; }
+.scouted-num { font-size: 1.3rem; font-weight: 600; color: var(--accent); min-width: 52px; text-align: center; background: rgba(212,175,55,0.1); border-radius: 4px; padding: 6px 4px; font-variant-numeric: tabular-nums; }
 .scouted-info { flex: 1; min-width: 0; }
 .scouted-name { font-size: 0.9rem; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .scouted-meta { font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.scouted-badge { font-size: 0.7rem; font-weight: 700; color: #000; background: var(--accent); border-radius: 6px; padding: 4px 8px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+.scouted-badge { font-size: 0.7rem; font-weight: 600; color: #000; background: var(--accent); border-radius: 4px; padding: 4px 8px; flex-shrink: 0; }
 
 .scouted-action-btn {
     background: #2a2a2a; border: 1px solid #444; border-radius: 7px;

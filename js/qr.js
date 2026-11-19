@@ -4,6 +4,12 @@
    Supports edit/prefill from scouted list.
 ========================================= */
 
+// Escape display text without changing saved values or export payloads.
+function escapeHTML(value) {
+    const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return String(value).replace(/[&<>"']/g, character => entities[character]);
+}
+
 const SCOUTED_KEY = 'SCOUTED_TEAMS_2026_V1';
 const QR_VERSION  = 'v2';
 
@@ -221,15 +227,15 @@ function renderScoutedList() {
 
     container.innerHTML = list.map(e => `
         <div class="scouted-row">
-            <div class="scouted-num">${e.teamNum}</div>
+            <div class="scouted-num">${escapeHTML(e.teamNum)}</div>
             <div class="scouted-info">
-                <div class="scouted-name">${e.teamName}</div>
-                <div class="scouted-meta">${e.scouter} · ${e.timestamp}</div>
+                <div class="scouted-name">${escapeHTML(e.teamName)}</div>
+                <div class="scouted-meta">${escapeHTML(e.scouter)} · ${escapeHTML(e.timestamp)}</div>
             </div>
             <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
-                <div class="scouted-badge">${e.chassis}</div>
-                <button type="button" class="scouted-action-btn" onclick="openQuickView('${e.teamNum}')">👁</button>
-                <button type="button" class="scouted-action-btn scouted-edit-btn" onclick="editEntry('${e.teamNum}')">✏️</button>
+                <div class="scouted-badge">${escapeHTML(e.chassis)}</div>
+                <button type="button" class="scouted-action-btn" data-team-num="${escapeHTML(e.teamNum)}" onclick="openQuickView(this.dataset.teamNum)">👁</button>
+                <button type="button" class="scouted-action-btn scouted-edit-btn" data-team-num="${escapeHTML(e.teamNum)}" onclick="editEntry(this.dataset.teamNum)">✏️</button>
             </div>
         </div>
     `).join('');
@@ -255,7 +261,7 @@ function renderUnscoutedList() {
     }
 
     const chips = unscouted.map(n => `
-        <span class="unscouted-chip" onclick="jumpToTeam(${n})">${n}</span>
+        <span class="unscouted-chip" data-team-num="${escapeHTML(n)}" onclick="jumpToTeam(Number(this.dataset.teamNum))">${escapeHTML(n)}</span>
     `).join('');
 
     container.innerHTML = `
@@ -320,7 +326,7 @@ function openQuickView(teamNum) {
     fields.forEach(([label, value]) => {
         html += `<div style="display:flex;justify-content:space-between;margin-bottom:5px;border-bottom:1px solid #1e1e26;padding-bottom:4px;">
             <span style="color:var(--text-secondary);flex:0 0 42%;">${label}</span>
-            <span style="color:white;flex:1;text-align:right;word-break:break-word;">${value ?? '—'}</span>
+            <span style="color:white;flex:1;text-align:right;word-break:break-word;">${escapeHTML(value ?? '—')}</span>
         </div>`;
     });
 
