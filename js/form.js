@@ -56,8 +56,8 @@ function updateAssignmentHint() {
     chips.innerHTML = teams.map(n => {
         const isDone = isTeamScouted(n);
         return `<span class="assign-chip${isDone ? ' assign-chip--done' : ''}"
-            onclick="fillTeamFromAssignment(${n})"
-            title="${isDone ? '✓ Scouted' : 'Tap to scout'}">${isDone ? '✓' : ''} ${n}</span>`;
+            data-team-num="${escapeHTML(n)}" onclick="fillTeamFromAssignment(Number(this.dataset.teamNum))"
+            title="${isDone ? '✓ Scouted' : 'Tap to scout'}">${isDone ? '✓' : ''} ${escapeHTML(n)}</span>`;
     }).join('');
 
     prog.innerHTML = `
@@ -216,8 +216,8 @@ eventSearchInput.addEventListener('input', function() {
         const div = document.createElement('div');
         div.className = 'autocomplete-item';
         div.innerHTML = `
-            <div class="autocomplete-item-title">${ev.name}</div>
-            <div class="autocomplete-item-sub">${ev.key} • ${ev.city || 'Location Unknown'}</div>
+            <div class="autocomplete-item-title">${escapeHTML(ev.name)}</div>
+            <div class="autocomplete-item-sub">${escapeHTML(ev.key)} • ${escapeHTML(ev.city || 'Location Unknown')}</div>
         `;
         div.addEventListener('click', () => {
             selectEvent(ev.key);
@@ -247,8 +247,8 @@ document.getElementById('teamNum').addEventListener('input', function() {
         if (TEAM_LIST[num]) {
             const team = TEAM_LIST[num];
             disp.innerHTML = `
-                <div style="font-size:1.15rem;margin-bottom:4px;color:#000;">✓ ${team.name}</div>
-                <div style="font-size:0.8rem;color:#333;font-weight:600;">📍 ${team.location}</div>
+                <div style="font-size:1.15rem;margin-bottom:4px;color:#000;">✓ ${escapeHTML(team.name)}</div>
+                <div style="font-size:0.8rem;color:#333;font-weight:600;">📍 ${escapeHTML(team.location)}</div>
             `;
             disp.style.background = "var(--accent)";
             disp.style.color      = "#000";
@@ -264,7 +264,7 @@ document.getElementById('teamNum').addEventListener('input', function() {
                 disp.style.color      = "var(--accent)";
                 disp.style.background = "rgba(255,255,255,0.05)";
             } else if (tbaStatus === "empty") {
-                disp.innerHTML        = `<div>Team ${num}</div><div style="font-size:0.75rem;opacity:0.8;">TBA list empty for this event</div>`;
+                disp.innerHTML        = `<div>Team ${escapeHTML(num)}</div><div style="font-size:0.75rem;opacity:0.8;">TBA list empty for this event</div>`;
                 disp.style.color      = "#000";
                 disp.style.background = "var(--accent)";
             } else {
@@ -285,7 +285,7 @@ document.getElementById('teamNum').addEventListener('input', function() {
         if (imgCont) imgCont.style.display = 'none';
 
         if (num) {
-            disp.innerHTML        = `<div style="font-size:1rem;">✓ Team ${num}</div><div style="font-size:0.75rem;opacity:0.8;">📡 Offline mode — TBA unavailable</div>`;
+            disp.innerHTML        = `<div style="font-size:1rem;">✓ Team ${escapeHTML(num)}</div><div style="font-size:0.75rem;opacity:0.8;">📡 Offline mode — TBA unavailable</div>`;
             disp.style.color      = "#000";
             disp.style.background = "var(--accent)";
         } else {
@@ -527,14 +527,14 @@ function prepareReview() {
         ['Notes',           document.getElementById('notes').value || '—'],
     ];
 
-    let html = `<strong style="color:var(--accent);font-size:1rem;">Team ${t} — ${name}</strong><br><br>`;
+    let html = `<strong style="color:var(--accent);font-size:1rem;">Team ${escapeHTML(t)} — ${escapeHTML(name)}</strong><br><br>`;
     fields.forEach(([label, value]) => {
         if (label.startsWith('─')) {
             html += `<div style="color:var(--accent);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:10px 0 4px;">${label}</div>`;
         } else {
             html += `<div style="display:flex;justify-content:space-between;margin-bottom:4px;">
                 <span style="color:var(--text-secondary);flex:0 0 44%;">${label}</span>
-                <span style="color:white;flex:1;text-align:right;">${value}</span>
+                <span style="color:white;flex:1;text-align:right;">${escapeHTML(value)}</span>
             </div>`;
         }
     });

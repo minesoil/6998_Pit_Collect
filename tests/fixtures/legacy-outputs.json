@@ -1,0 +1,122 @@
+{
+  "kg": {
+    "qrCodes": [
+      {
+        "text": "v2\t1234\tTest Scout 測試\tSwerve\t121.3\t30\tGround + Outpost\tLimelight\tAprilTag\tStationary + Pass\tType: Single | CanChangeDeg: Yes | Yaw: 360° | Pitch: 45°\tLeft\t8\tDepot\tCenter\t24\t1\tBump + Trench\tL2\tFarLeft\t5\t1\tReliable & fast; <literal> \"notes\" with newlines",
+        "width": 256,
+        "height": 256,
+        "colorDark": "#000000",
+        "colorLight": "#ffffff",
+        "correctLevel": 1
+      },
+      {
+        "text": "v2\t2026TEST\t0\t1234\t10,20|25,20|51,61",
+        "width": 200,
+        "height": 200,
+        "colorDark": "#D4AF37",
+        "colorLight": "#ffffff",
+        "correctLevel": 1
+      },
+      {
+        "text": "v2\t2026TEST\t0\t1234\t30,41",
+        "width": 200,
+        "height": 200,
+        "colorDark": "#D4AF37",
+        "colorLight": "#ffffff",
+        "correctLevel": 1
+      }
+    ],
+    "savedEntries": [
+      {
+        "teamNum": "1234",
+        "teamName": "Fixture Team & Robot",
+        "eventKey": "2026test",
+        "scouter": "Test Scout 測試",
+        "chassis": "Swerve",
+        "weight": "121.3 lbs",
+        "capacity": "30",
+        "intake": "Ground + Outpost",
+        "visionHard": "Limelight",
+        "visionSoft": "AprilTag",
+        "shoot": "Stationary + Pass",
+        "turret": "Type: Single | CanChangeDeg: Yes | Yaw: 360° | Pitch: 45°",
+        "startPos": "Left",
+        "preload": "8",
+        "autoIntake": "Depot",
+        "autoHang": "Center",
+        "autoTotal": "24",
+        "crossMid": "Yes",
+        "terrain": "Bump + Trench",
+        "climbLvl": "L2",
+        "climbPos": "FarLeft",
+        "climbTime": "5",
+        "photos": "Yes",
+        "notes": "Reliable & fast; <literal> \"notes\"\twith\nnewlines",
+        "timestamp": "3/1/2026, 12:00:00 PM"
+      }
+    ],
+    "robotCount": "1",
+    "csv": "Team #,Team Name,Event,Scouter,Chassis,Weight,Capacity,Intake,Vision Hardware,Vision Software,Shooting,Turret,Start Position,Preload,Auto Intake,Auto Hang,Auto Total,Cross Midfield,Terrain,Climb Level,Climb Position,Climb Time,Photos,Notes,Timestamp\n1234,Fixture Team & Robot,2026test,Test Scout 測試,Swerve,121.3 lbs,30,Ground + Outpost,Limelight,AprilTag,Stationary + Pass,Type: Single | CanChangeDeg: Yes | Yaw: 360° | Pitch: 45°,Left,8,Depot,Center,24,Yes,Bump + Trench,L2,FarLeft,5,Yes,\"Reliable & fast; <literal> \"\"notes\"\"\twith\nnewlines\",3/1/2026, 12:00:00 PM",
+    "filename": "pit_scouting_2026test_2026-03-01.csv"
+  },
+  "lbs": {
+    "qrCodes": [
+      {
+        "text": "v2\t1234\tTest Scout 測試\tSwerve\t125\t30\tGround + Outpost\tLimelight\tAprilTag\tStationary + Pass\tType: Single | CanChangeDeg: Yes | Yaw: 360° | Pitch: 45°\tLeft\t8\tDepot\tCenter\t24\t1\tBump + Trench\tL2\tFarLeft\t5\t1\tReliable & fast; <literal> \"notes\" with newlines",
+        "width": 256,
+        "height": 256,
+        "colorDark": "#000000",
+        "colorLight": "#ffffff",
+        "correctLevel": 1
+      },
+      {
+        "text": "v2\t2026TEST\t0\t1234\t10,20|25,20|51,61",
+        "width": 200,
+        "height": 200,
+        "colorDark": "#D4AF37",
+        "colorLight": "#ffffff",
+        "correctLevel": 1
+      },
+      {
+        "text": "v2\t2026TEST\t0\t1234\t30,41",
+        "width": 200,
+        "height": 200,
+        "colorDark": "#D4AF37",
+        "colorLight": "#ffffff",
+        "correctLevel": 1
+      }
+    ],
+    "savedEntries": [
+      {
+        "teamNum": "1234",
+        "teamName": "Fixture Team & Robot",
+        "eventKey": "2026test",
+        "scouter": "Test Scout 測試",
+        "chassis": "Swerve",
+        "weight": "125 lbs",
+        "capacity": "30",
+        "intake": "Ground + Outpost",
+        "visionHard": "Limelight",
+        "visionSoft": "AprilTag",
+        "shoot": "Stationary + Pass",
+        "turret": "Type: Single | CanChangeDeg: Yes | Yaw: 360° | Pitch: 45°",
+        "startPos": "Left",
+        "preload": "8",
+        "autoIntake": "Depot",
+        "autoHang": "Center",
+        "autoTotal": "24",
+        "crossMid": "Yes",
+        "terrain": "Bump + Trench",
+        "climbLvl": "L2",
+        "climbPos": "FarLeft",
+        "climbTime": "5",
+        "photos": "Yes",
+        "notes": "Reliable & fast; <literal> \"notes\"\twith\nnewlines",
+        "timestamp": "3/1/2026, 12:00:00 PM"
+      }
+    ],
+    "robotCount": "1",
+    "csv": "Team #,Team Name,Event,Scouter,Chassis,Weight,Capacity,Intake,Vision Hardware,Vision Software,Shooting,Turret,Start Position,Preload,Auto Intake,Auto Hang,Auto Total,Cross Midfield,Terrain,Climb Level,Climb Position,Climb Time,Photos,Notes,Timestamp\n1234,Fixture Team & Robot,2026test,Test Scout 測試,Swerve,125 lbs,30,Ground + Outpost,Limelight,AprilTag,Stationary + Pass,Type: Single | CanChangeDeg: Yes | Yaw: 360° | Pitch: 45°,Left,8,Depot,Center,24,Yes,Bump + Trench,L2,FarLeft,5,Yes,\"Reliable & fast; <literal> \"\"notes\"\"\twith\nnewlines\",3/1/2026, 12:00:00 PM",
+    "filename": "pit_scouting_2026test_2026-03-01.csv"
+  }
+}
